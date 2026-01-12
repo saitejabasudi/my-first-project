@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { useToast } from '@/hooks/use-toast';
 import { IdeHeader } from './ide-header';
@@ -12,8 +12,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Play, Trash2, X } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Play, Trash2 } from 'lucide-react';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
@@ -98,35 +97,36 @@ function lintJavaCode(code: string): string[] {
 }
 
 export function IdeLayout() {
-  const [files, setFiles] = useState<JavaFile[]>([]);
-  const [activeFileId, setActiveFileId] = useState<string | null>(null);
+  const [activeFile, setActiveFile] = useState<JavaFile | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to Java Studio Pro! Ready to compile.']);
   const [lintingEnabled, setLintingEnabled] = useState(true);
   const { toast } = useToast();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
-    let initialFiles: JavaFile[] = [];
+    let allFiles: JavaFile[] = [];
     try {
       const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
-      initialFiles = storedProjectsJson ? JSON.parse(storedProjectsJson) : mockFiles;
+      allFiles = storedProjectsJson ? JSON.parse(storedProjectsJson) : mockFiles;
     } catch (error) {
       console.error("Failed to load projects from localStorage", error);
-      initialFiles = mockFiles;
+      allFiles = mockFiles;
     }
-    setFiles(initialFiles);
 
     const fileIdFromUrl = searchParams.get('file');
+    const fileToLoad = allFiles.find(f => f.id === fileIdFromUrl);
     
-    if (fileIdFromUrl && initialFiles.some(f => f.id === fileIdFromUrl)) {
-      setActiveFileId(fileIdFromUrl);
-    } else if (initialFiles.length > 0) {
-      setActiveFileId(initialFiles[0].id);
+    if (fileToLoad) {
+      setActiveFile(fileToLoad);
+    } else if (allFiles.length > 0) {
+      // Fallback to first file if URL param is invalid or missing
+      setActiveFile(allFiles[0]);
+      router.replace(`/ide?file=${allFiles[0].id}`);
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
-  const activeFile = files.find(f => f.id === activeFileId);
   const debouncedCode = useDebounce(activeFile?.content ?? '', 500);
 
   useEffect(() => {
@@ -145,42 +145,21 @@ export function IdeLayout() {
   }, [debouncedCode, lintingEnabled, activeFile]);
 
 
-  const handleFileSelect = useCallback(
-    (fileId: string) => {
-      if (fileId !== activeFileId) {
-        setActiveFileId(fileId);
-        setTerminalOutput(['Welcome to Java Studio Pro! Ready to compile.']);
-      }
-    },
-    [activeFileId]
-  );
-  
-  const handleCloseFile = (fileId: string) => {
-    if (files.length <= 1) {
-        toast({ title: "Cannot close the last file", variant: "destructive"});
-        return;
-    }
-    const fileIndex = files.findIndex(f => f.id === fileId);
-    
-    // Optimistically update UI
-    const newFiles = files.filter(f => f.id !== fileId);
-    setFiles(newFiles);
-
-    // Update localStorage
-    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(newFiles));
-
-    if (activeFileId === fileId) {
-        const newActiveIndex = Math.max(0, fileIndex -1);
-        setActiveFileId(newFiles[newActiveIndex].id);
-    }
-  }
-
-
   const handleCodeChange = useCallback((newCode: string) => {
-    const updatedFiles = files.map(f => f.id === activeFileId ? {...f, content: newCode} : f);
-    setFiles(updatedFiles);
-    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
-  }, [activeFileId, files]);
+    if (!activeFile) return;
+    const updatedFile = { ...activeFile, content: newCode };
+    setActiveFile(updatedFile);
+
+    try {
+      const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
+      const allFiles = storedProjectsJson ? JSON.parse(storedProjectsJson) : mockFiles;
+      const updatedFiles = allFiles.map((f: JavaFile) => f.id === activeFile.id ? updatedFile : f);
+      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
+    } catch (error) {
+        console.error("Failed to save project to localStorage", error);
+    }
+
+  }, [activeFile]);
 
   const handleCompile = useCallback(() => {
     if (!activeFile) return;
@@ -213,20 +192,18 @@ export function IdeLayout() {
   const handleFormatCode = useCallback(() => {
     if (!activeFile) return;
     const formattedCode = formatJavaCode(activeFile.content);
-    const updatedFiles = files.map(f => f.id === activeFileId ? {...f, content: formattedCode} : f)
-    setFiles(updatedFiles);
-    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
+    handleCodeChange(formattedCode);
     toast({ description: 'Code formatted.' });
-  }, [activeFile, activeFileId, files, toast]);
+  }, [activeFile, handleCodeChange, toast]);
 
   const handleClearTerminal = useCallback(() => {
     setTerminalOutput([]);
   }, []);
   
-  if (!activeFile || !activeFileId) {
+  if (!activeFile) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
-            Loading...
+            Loading project...
         </div>
     );
   }
@@ -235,34 +212,9 @@ export function IdeLayout() {
     <div className="flex h-screen flex-col bg-background text-foreground">
       <IdeHeader activeFile={activeFile} />
       <main className="flex flex-1 flex-col overflow-hidden relative">
-        <Tabs value={activeFileId} onValueChange={handleFileSelect} className="flex flex-col flex-1 overflow-hidden">
-            <div className="px-4 border-b">
-                <TabsList className="bg-transparent p-0">
-                    {files.map(file => (
-                    <TabsTrigger key={file.id} value={file.id} className="relative data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 border-primary rounded-none pr-8">
-                        {file.name}
-                        <div 
-                            role="button"
-                            aria-label={`Close ${file.name}`}
-                            className="absolute top-0 right-0 h-full w-8 flex items-center justify-center rounded-sm hover:bg-accent"
-                            onClick={(e) => { 
-                                e.stopPropagation(); 
-                                e.preventDefault(); 
-                                handleCloseFile(file.id);
-                            }}
-                        >
-                            <X className="h-4 w-4" />
-                        </div>
-                    </TabsTrigger>
-                    ))}
-                </TabsList>
-            </div>
-          {files.map(file => (
-            <TabsContent key={file.id} value={file.id} className="flex-1 flex flex-col overflow-hidden mt-0">
-                <CodeEditor code={file.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
-            </TabsContent>
-          ))}
-        </Tabs>
+        <div className="flex-1 flex flex-col overflow-hidden">
+             <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
+        </div>
 
         <div className="flex h-1/3 min-h-[150px] flex-col border-t">
           <div className="flex items-center justify-between border-b px-4 py-2">
