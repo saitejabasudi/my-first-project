@@ -6,14 +6,9 @@ import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { useToast } from '@/hooks/use-toast';
 import { IdeHeader } from './ide-header';
 import { CodeEditor } from './code-editor';
-import { TerminalView } from './terminal-view';
-import { useDebounce } from '@/hooks/use-debounce';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Play, Trash2 } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const OUTPUT_STORAGE_KEY = 'java-ide-output';
@@ -86,9 +81,6 @@ export function IdeLayout() {
   const [allFiles, setAllFiles] = useState<JavaFile[]>([]);
   const [activeFile, setActiveFile] = useState<JavaFile | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
-  const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to Java Studio Pro! Ready to compile.']);
-  const [lintingEnabled, setLintingEnabled] = useState(true);
-  const [activeTab, setActiveTab] = useState('editor');
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -123,24 +115,6 @@ export function IdeLayout() {
         router.push('/');
     }
   }, [searchParams, router]);
-
-  const debouncedCode = useDebounce(activeFile?.content ?? '', 500);
-
-  useEffect(() => {
-    if (lintingEnabled && activeFile) {
-      const errors = lintJavaCode(debouncedCode);
-       setTerminalOutput(prev => {
-        const otherMessages = prev.filter(l => !l.startsWith('Error'));
-        if (errors.length > 0) {
-          return [...errors, ...otherMessages];
-        }
-        return otherMessages;
-      });
-    } else if (!lintingEnabled) {
-       setTerminalOutput(prev => prev.filter(l => !l.startsWith('Error')));
-    }
-  }, [debouncedCode, lintingEnabled, activeFile]);
-
 
   const handleCodeChange = useCallback((newCode: string) => {
     if (!activeFile) return;
@@ -235,10 +209,6 @@ export function IdeLayout() {
       setIsCompiling(false);
     }, 1500);
   }, [activeFile, toast, router]);
-
-  const handleClearTerminal = useCallback(() => {
-    setTerminalOutput([]);
-  }, []);
   
   if (!activeFile) {
     return (
@@ -261,31 +231,7 @@ export function IdeLayout() {
           />
         </div>
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="mx-4 mt-2">
-              <TabsTrigger value="editor">Editor</TabsTrigger>
-              <TabsTrigger value="output">Output</TabsTrigger>
-            </TabsList>
-            <TabsContent value="editor" className="flex-1 flex flex-col overflow-hidden mt-0">
-              <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
-            </TabsContent>
-            <TabsContent value="output" className="flex-1 flex flex-col overflow-hidden mt-0">
-               <div className="flex items-center justify-between border-b px-4 py-2">
-                <h3 className="font-semibold text-sm">Terminal</h3>
-                <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch id="linting-toggle" checked={lintingEnabled} onCheckedChange={setLintingEnabled} />
-                      <Label htmlFor="linting-toggle" className="text-sm">Real-time Errors</Label>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={handleClearTerminal} aria-label="Clear Terminal">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
-              <TerminalView output={terminalOutput} />
-            </TabsContent>
-          </Tabs>
-
+          <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
           <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-lg" size="icon">
             <Play className="h-8 w-8 text-primary-foreground fill-primary-foreground" />
           </Button>
