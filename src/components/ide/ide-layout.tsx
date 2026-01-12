@@ -17,6 +17,7 @@ import { Play, Trash2 } from 'lucide-react';
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
 function formatJavaCode(code: string): string {
+  if (!code) return '';
   const lines = code.split('\n');
   let indentLevel = 0;
   const indentSize = 4;
@@ -36,6 +37,7 @@ function formatJavaCode(code: string): string {
 
 function lintJavaCode(code: string): string[] {
     const errors: string[] = [];
+    if (!code) return errors;
     const lines = code.split('\n');
     const braceStack: number[] = [];
     const parenStack: number[] = [];
@@ -57,8 +59,8 @@ function lintJavaCode(code: string): string[] {
             !trimmedLine.startsWith('package') &&
             !/^\s*(public|private|protected|static|final|abstract|class|interface|enum|@interface|implements|extends)/.test(trimmedLine) &&
             !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*[\w<>[\]]+\s+\w+\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*@/) && // annotations
-            !line.match(/^\s*}/) && // closing brace on new line
+            !line.match(/^\s*@/) &&
+            !line.match(/^\s*}/) &&
             !line.match(/^\s*for\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*if\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*else(\s*if\s*\(.*\))?\s*\{?$/) &&
@@ -124,6 +126,8 @@ export function IdeLayout() {
       // Fallback to first file if URL param is invalid or missing
       setActiveFile(allFiles[0]);
       router.replace(`/ide?file=${allFiles[0].id}`);
+    } else {
+        router.push('/');
     }
   }, [searchParams, router]);
 
@@ -139,7 +143,7 @@ export function IdeLayout() {
         }
         return otherMessages;
       });
-    } else {
+    } else if (!lintingEnabled) {
        setTerminalOutput(prev => prev.filter(l => !l.startsWith('Error')));
     }
   }, [debouncedCode, lintingEnabled, activeFile]);
