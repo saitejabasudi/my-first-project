@@ -52,7 +52,7 @@ function lintJavaCode(code: string): string[] {
             !trimmedLine.startsWith('*') &&
             !trimmedLine.startsWith('import') &&
             !trimmedLine.startsWith('package') &&
-            !line.match(/^\s*(public|private|protected|class|interface|enum|static|final|abstract|void|int|String)/) &&
+            !line.match(/^\s*(public|private|protected|class|interface|enum|static|final|abstract|void|int|String|boolean|char|long|double|float|short|byte)/) &&
             !line.match(/^\s*@/) && // annotations
             !line.match(/^\s*}/) && // closing brace on new line
             !line.match(/^\s*for\s*\(.*\)\s*\{?$/) &&
