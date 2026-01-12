@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Play, Trash2 } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
@@ -58,15 +59,17 @@ function lintJavaCode(code: string): string[] {
             !trimmedLine.startsWith('*') &&
             !trimmedLine.startsWith('import ') &&
             !trimmedLine.startsWith('package ') &&
+            !/^\s*@(Override|Deprecated|SuppressWarnings|FunctionalInterface)/.test(trimmedLine) &&
             !/^\s*(public|private|protected|static|final|abstract|class|interface|enum|@interface|implements|extends)/.test(trimmedLine) &&
-            !line.match(/^\s*@(Override|Deprecated|SuppressWarnings|FunctionalInterface)/) &&
-            !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*[\w<>[\]]+\s+\w+\s*\(.*\)\s*\{?$/) &&
+            !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*[\w<>[\].,\s]+\s+\w+\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*}/) &&
             !line.match(/^\s*for\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*if\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*else(\s*if\s*\(.*\))?\s*\{?$/) &&
             !line.match(/^\s*while\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*(try|catch|finally)\s*(\(.*\))?\s*\{?$/)
+            !line.match(/^\s*try\s*(\{?|.*)?$/) &&
+            !line.match(/^\s*catch\s*\(.*\)\s*\{?$/) &&
+            !line.match(/^\s*finally\s*\{?$/)
         ) {
             errors.push(`Error at line ${lineNumber}: Missing semicolon or incomplete statement.`);
         }
@@ -103,6 +106,7 @@ export function IdeLayout() {
   const [isCompiling, setIsCompiling] = useState(false);
   const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to Java Studio Pro! Ready to compile.']);
   const [lintingEnabled, setLintingEnabled] = useState(true);
+  const [activeTab, setActiveTab] = useState('editor');
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -180,23 +184,26 @@ export function IdeLayout() {
   }, [allFiles, router]);
 
   const handleFileClose = useCallback((fileIdToClose: string) => {
-    const updatedFiles = allFiles.filter(f => f.id !== fileIdToClose);
-    setAllFiles(updatedFiles);
-    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
+    setAllFiles(currentFiles => {
+        const updatedFiles = currentFiles.filter(f => f.id !== fileIdToClose);
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
 
-    if (activeFile?.id === fileIdToClose) {
-        if (updatedFiles.length > 0) {
-            handleFileSelect(updatedFiles[0].id);
-        } else {
-            router.push('/');
+        if (activeFile?.id === fileIdToClose) {
+            if (updatedFiles.length > 0) {
+                handleFileSelect(updatedFiles[0].id);
+            } else {
+                router.push('/');
+            }
         }
-    }
-  }, [activeFile, allFiles, router, handleFileSelect]);
+        return updatedFiles;
+    });
+  }, [activeFile, router, handleFileSelect]);
 
   const handleCompile = useCallback(() => {
     if (!activeFile) return;
 
     setIsCompiling(true);
+    setActiveTab('output');
     setTerminalOutput((prev) => [...prev, `\n> Compiling ${activeFile.name}...`]);
 
     setTimeout(() => {
@@ -253,12 +260,16 @@ export function IdeLayout() {
           />
         </div>
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
-          </div>
-
-          <div className="flex h-1/3 min-h-[150px] flex-col border-t">
-            <div className="flex items-center justify-between border-b px-4 py-2">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+            <TabsList className="mx-4 mt-2">
+              <TabsTrigger value="editor">Editor</TabsTrigger>
+              <TabsTrigger value="output">Output</TabsTrigger>
+            </TabsList>
+            <TabsContent value="editor" className="flex-1 flex flex-col overflow-hidden mt-0">
+              <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
+            </TabsContent>
+            <TabsContent value="output" className="flex-1 flex flex-col overflow-hidden mt-0">
+               <div className="flex items-center justify-between border-b px-4 py-2">
                 <h3 className="font-semibold text-sm">Terminal</h3>
                 <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
@@ -270,10 +281,11 @@ export function IdeLayout() {
                     </Button>
                 </div>
             </div>
-            <TerminalView output={terminalOutput} onClear={handleClearTerminal} />
-          </div>
+              <TerminalView output={terminalOutput} onClear={handleClearTerminal} />
+            </TabsContent>
+          </Tabs>
 
-          <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-24 right-6 h-16 w-16 rounded-full bg-green-500 hover:bg-green-600 shadow-lg" size="icon">
+          <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-16 w-16 rounded-full bg-green-500 hover:bg-green-600 shadow-lg" size="icon">
             <Play className="h-8 w-8 text-white fill-white" />
           </Button>
         </div>
@@ -281,3 +293,5 @@ export function IdeLayout() {
     </div>
   );
 }
+
+    
