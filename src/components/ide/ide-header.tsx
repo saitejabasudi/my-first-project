@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Sun, Share2, Menu } from 'lucide-react';
 import type { JavaFile } from '@/lib/mock-files';
@@ -11,11 +12,13 @@ export function IdeHeader({ activeFile }: IdeHeaderProps) {
   return (
     <header className="flex h-16 flex-shrink-0 items-center justify-between border-b bg-card px-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon">
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+        <Link href="/" passHref>
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
         <div>
-          <h1 className="text-base font-semibold">Hello World</h1>
+          <h1 className="text-base font-semibold">{activeFile.name}</h1>
           <p className="text-xs text-muted-foreground">Java Studio Pro</p>
         </div>
       </div>
