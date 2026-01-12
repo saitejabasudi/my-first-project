@@ -52,7 +52,7 @@ function lintJavaCode(code: string): string[] {
             !trimmedLine.startsWith('*') &&
             !trimmedLine.startsWith('import') &&
             !trimmedLine.startsWith('package') &&
-            !line.match(/^\s*(public|private|protected|static|final|abstract)?\s*(class|interface|enum|@interface)/) &&
+            !/^\s*(public|private|protected|static|final|abstract|class|interface|enum|@interface)/.test(line) &&
             !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*[\w<>[\]]+\s+\w+\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*@/) && // annotations
             !line.match(/^\s*}/) && // closing brace on new line
@@ -108,16 +108,17 @@ export function IdeLayout() {
   useEffect(() => {
     if (lintingEnabled) {
       const errors = lintJavaCode(debouncedCode);
-      const otherMessages = terminalOutput.filter(l => !l.startsWith('Error'));
-      if (errors.length > 0) {
-        setTerminalOutput([...otherMessages, ...errors]);
-      } else {
-        setTerminalOutput(otherMessages);
-      }
+      setTerminalOutput(prev => {
+        const otherMessages = prev.filter(l => !l.startsWith('Error'));
+        if (errors.length > 0) {
+          return [...otherMessages, ...errors];
+        }
+        return otherMessages;
+      });
     } else {
        setTerminalOutput(prev => prev.filter(l => !l.startsWith('Error')));
     }
-  }, [debouncedCode, lintingEnabled, terminalOutput]);
+  }, [debouncedCode, lintingEnabled]);
 
 
   const handleFileSelect = useCallback(
