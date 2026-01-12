@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
@@ -52,7 +53,7 @@ function lintJavaCode(code: string): string[] {
             !trimmedLine.startsWith('*') &&
             !trimmedLine.startsWith('import') &&
             !trimmedLine.startsWith('package') &&
-            !/^\s*(public|private|protected|static|final|abstract|class|interface|enum|@interface)/.test(line) &&
+            !/^\s*(public|private|protected|static|final|abstract|class|interface|enum|@interface)/.test(trimmedLine) &&
             !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*[\w<>[\]]+\s+\w+\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*@/) && // annotations
             !line.match(/^\s*}/) && // closing brace on new line
@@ -83,13 +84,12 @@ function lintJavaCode(code: string): string[] {
         }
     });
     
-    if (braceStack.length > 0) {
-        errors.push(`Error: Mismatched curly braces. Unclosed brace from line ${braceStack.pop()}.`);
-    }
-    if (parenStack.length > 0) {
-        errors.push(`Error: Mismatched parentheses. Unclosed parenthesis from line ${parenStack.pop()}.`);
-    }
-
+    braceStack.forEach(lineNumber => {
+        errors.push(`Error: Mismatched curly braces. Unclosed brace from line ${lineNumber}.`);
+    });
+    parenStack.forEach(lineNumber => {
+        errors.push(`Error: Mismatched parentheses. Unclosed parenthesis from line ${lineNumber}.`);
+    });
 
     return errors;
 }
@@ -218,11 +218,9 @@ export function IdeLayout() {
                 </TabsList>
             </div>
           {files.map(file => (
-            <TabsContent key={file.id} value={file.id} className="flex-1 overflow-hidden mt-0">
-               <div className="flex flex-1 flex-col h-full">
-                    <div className="flex-1 overflow-hidden">
-                        <CodeEditor code={file.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
-                    </div>
+            <TabsContent key={file.id} value={file.id} className="flex-1 flex flex-col overflow-hidden mt-0">
+                <div className="flex-1 overflow-hidden">
+                    <CodeEditor code={file.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
                 </div>
             </TabsContent>
           ))}

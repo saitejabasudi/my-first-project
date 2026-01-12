@@ -4,15 +4,16 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Code, Moon, Share2, MoreVertical, History, Plus } from 'lucide-react';
+import { Code, Moon, Sun, Share2, MoreVertical, History, Plus } from 'lucide-react';
 import { mockFiles } from '@/lib/mock-files';
 
 export default function ProjectSelectionPage() {
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark', !isDarkMode);
+    const newIsDarkMode = !isDarkMode;
+    setIsDarkMode(newIsDarkMode);
+    document.documentElement.classList.toggle('dark', newIsDarkMode);
   };
 
   return (
@@ -25,7 +26,7 @@ export default function ProjectSelectionPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            <Moon className="h-5 w-5" />
+            {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
           <Button variant="ghost" size="icon">
             <Share2 className="h-5 w-5" />
