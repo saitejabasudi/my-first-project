@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useRef, useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +28,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   };
 
   const highlightSegment = (segment: string, key: string) => {
-    const keywordRegex = /\b(if|else|for|while|switch|case|break|continue|return|public|static|void|class|int|String|System|out|println|main)\b/g;
+    const keywordRegex = /\b(if|else|for|while|switch|case|break|continue|return)\b/g;
     let lastIndex = 0;
     const parts = [];
     let match;
