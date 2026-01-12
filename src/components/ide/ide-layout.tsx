@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Play, Trash2 } from 'lucide-react';
+import { FileExplorer } from './file-explorer';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
@@ -55,8 +56,8 @@ function lintJavaCode(code: string): string[] {
             !trimmedLine.startsWith('/*') &&
             !trimmedLine.endsWith('*/') &&
             !trimmedLine.startsWith('*') &&
-            !trimmedLine.startsWith('import') &&
-            !trimmedLine.startsWith('package') &&
+            !trimmedLine.startsWith('import ') &&
+            !trimmedLine.startsWith('package ') &&
             !/^\s*(public|private|protected|static|final|abstract|class|interface|enum|@interface|implements|extends)/.test(trimmedLine) &&
             !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*[\w<>[\]]+\s+\w+\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*@/) &&
@@ -99,6 +100,7 @@ function lintJavaCode(code: string): string[] {
 }
 
 export function IdeLayout() {
+  const [allFiles, setAllFiles] = useState<JavaFile[]>([]);
   const [activeFile, setActiveFile] = useState<JavaFile | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to Java Studio Pro! Ready to compile.']);
@@ -108,24 +110,27 @@ export function IdeLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    let allFiles: JavaFile[] = [];
+    let files: JavaFile[] = [];
     try {
       const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
-      allFiles = storedProjectsJson ? JSON.parse(storedProjectsJson) : mockFiles;
+      files = storedProjectsJson ? JSON.parse(storedProjectsJson) : mockFiles;
+      setAllFiles(files);
     } catch (error) {
       console.error("Failed to load projects from localStorage", error);
-      allFiles = mockFiles;
+      files = mockFiles;
+      setAllFiles(files);
     }
 
     const fileIdFromUrl = searchParams.get('file');
-    const fileToLoad = allFiles.find(f => f.id === fileIdFromUrl);
+    const fileToLoad = files.find(f => f.id === fileIdFromUrl);
     
     if (fileToLoad) {
       setActiveFile(fileToLoad);
-    } else if (allFiles.length > 0) {
+    } else if (files.length > 0) {
       // Fallback to first file if URL param is invalid or missing
-      setActiveFile(allFiles[0]);
-      router.replace(`/ide?file=${allFiles[0].id}`);
+      const firstFile = files[0];
+      setActiveFile(firstFile);
+      router.replace(`/ide?file=${firstFile.id}`);
     } else {
         router.push('/');
     }
@@ -151,19 +156,40 @@ export function IdeLayout() {
 
   const handleCodeChange = useCallback((newCode: string) => {
     if (!activeFile) return;
+    
     const updatedFile = { ...activeFile, content: newCode };
     setActiveFile(updatedFile);
 
     try {
-      const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
-      const allFiles = storedProjectsJson ? JSON.parse(storedProjectsJson) : mockFiles;
       const updatedFiles = allFiles.map((f: JavaFile) => f.id === activeFile.id ? updatedFile : f);
+      setAllFiles(updatedFiles);
       localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
     } catch (error) {
         console.error("Failed to save project to localStorage", error);
     }
+  }, [activeFile, allFiles]);
 
-  }, [activeFile]);
+  const handleFileSelect = useCallback((fileId: string) => {
+    const fileToSelect = allFiles.find(f => f.id === fileId);
+    if(fileToSelect) {
+        setActiveFile(fileToSelect);
+        router.push(`/ide?file=${fileId}`);
+    }
+  }, [allFiles, router]);
+
+  const handleFileClose = useCallback((fileIdToClose: string) => {
+    const remainingFiles = allFiles.filter(f => f.id !== fileIdToClose);
+    setAllFiles(remainingFiles);
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(remainingFiles));
+
+    if (activeFile?.id === fileIdToClose) {
+        if (remainingFiles.length > 0) {
+            handleFileSelect(remainingFiles[0].id);
+        } else {
+            router.push('/');
+        }
+    }
+  }, [activeFile, allFiles, router, handleFileSelect]);
 
   const handleCompile = useCallback(() => {
     if (!activeFile) return;
@@ -215,30 +241,40 @@ export function IdeLayout() {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <IdeHeader activeFile={activeFile} />
-      <main className="flex flex-1 flex-col overflow-hidden relative">
-        <div className="flex-1 flex flex-col overflow-hidden">
-             <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
+      <main className="flex flex-1 overflow-hidden">
+        <div className="w-64 hidden sm:block border-r">
+          <FileExplorer 
+            files={allFiles}
+            activeFileId={activeFile.id}
+            onFileSelect={handleFileSelect}
+            onFileClose={handleFileClose}
+          />
         </div>
-
-        <div className="flex h-1/3 min-h-[150px] flex-col border-t">
-          <div className="flex items-center justify-between border-b px-4 py-2">
-              <h3 className="font-semibold text-sm">Terminal</h3>
-              <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch id="linting-toggle" checked={lintingEnabled} onCheckedChange={setLintingEnabled} />
-                    <Label htmlFor="linting-toggle" className="text-sm">Real-time Errors</Label>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={handleClearTerminal} aria-label="Clear Terminal">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-              </div>
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          <div className="flex-1 flex flex-col overflow-hidden">
+                <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
           </div>
-          <TerminalView output={terminalOutput} onClear={handleClearTerminal} />
-        </div>
 
-        <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-24 right-6 h-16 w-16 rounded-full bg-green-500 hover:bg-green-600 shadow-lg" size="icon">
-          <Play className="h-8 w-8 text-white fill-white" />
-        </Button>
+          <div className="flex h-1/3 min-h-[150px] flex-col border-t">
+            <div className="flex items-center justify-between border-b px-4 py-2">
+                <h3 className="font-semibold text-sm">Terminal</h3>
+                <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <Switch id="linting-toggle" checked={lintingEnabled} onCheckedChange={setLintingEnabled} />
+                      <Label htmlFor="linting-toggle" className="text-sm">Real-time Errors</Label>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={handleClearTerminal} aria-label="Clear Terminal">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+            <TerminalView output={terminalOutput} onClear={handleClearTerminal} />
+          </div>
+
+          <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-24 right-6 h-16 w-16 rounded-full bg-green-500 hover:bg-green-600 shadow-lg" size="icon">
+            <Play className="h-8 w-8 text-white fill-white" />
+          </Button>
+        </div>
       </main>
     </div>
   );
