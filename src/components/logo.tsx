@@ -4,6 +4,8 @@ export function Logo({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -12,11 +14,9 @@ export function Logo({ className }: { className?: string }) {
       strokeLinejoin="round"
       className={cn('h-6 w-6', className)}
     >
-      <path d="M10 2v2" />
-      <path d="M14 2v2" />
-      <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-      <path d="M6 8H4a4 4 0 0 0 0 8h2" />
-      <path d="M14.5 18H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4.5" />
+      <rect width="18" height="18" x="3" y="3" rx="2"/>
+      <path d="m10 9-2 2 2 2"/>
+      <path d="m14 9 2 2-2 2"/>
     </svg>
   );
 }
