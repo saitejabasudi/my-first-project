@@ -255,13 +255,6 @@ export function IdeLayout() {
     }, 1500);
   }, [activeFile, toast, router]);
 
-  const handleFormatCode = useCallback(() => {
-    if (!activeFile) return;
-    const formattedCode = formatJavaCode(activeFile.content);
-    handleCodeChange(formattedCode);
-    toast({ description: 'Code formatted.' });
-  }, [activeFile, handleCodeChange, toast]);
-
   const handleClearTerminal = useCallback(() => {
     setTerminalOutput([]);
   }, []);
@@ -293,7 +286,7 @@ export function IdeLayout() {
               <TabsTrigger value="output">Output</TabsTrigger>
             </TabsList>
             <TabsContent value="editor" className="flex-1 flex flex-col overflow-hidden mt-0">
-              <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
+              <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
             </TabsContent>
             <TabsContent value="output" className="flex-1 flex flex-col overflow-hidden mt-0">
                <div className="flex items-center justify-between border-b px-4 py-2">
