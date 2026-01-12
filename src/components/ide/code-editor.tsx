@@ -14,7 +14,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
   useEffect(() => {
     const lines = code.split('\n').length;
-    setLineCount(lines);
+    setLineCount(lines > 0 ? lines : 1);
   }, [code]);
   
   const handleScroll = () => {
@@ -40,7 +40,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
               value={code}
               onChange={(e) => onCodeChange(e.target.value)}
               onScroll={handleScroll}
-              className="h-full min-h-full w-full flex-1 resize-none border-0 rounded-none bg-transparent p-4 font-code text-base leading-relaxed focus-visible:ring-0"
+              className="h-full min-h-full w-full flex-1 resize-none border-0 rounded-none bg-transparent p-4 pl-4 font-code text-base leading-relaxed focus-visible:ring-0"
               placeholder="Write your Java code here..."
               aria-label="Code Editor"
               spellCheck="false"
