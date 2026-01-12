@@ -50,6 +50,7 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     --syntax-highlight: 54 96% 53%; /* Yellow */
+    --syntax-string: 139 58% 33%; /* Green */
   }
 
   .dark {
@@ -97,6 +98,7 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     --syntax-highlight: 54 96% 53%; /* Yellow */
+    --syntax-string: 139 58% 53%; /* Green */
   }
 }
 

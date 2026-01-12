@@ -26,15 +26,49 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     }
   };
 
+  const highlightSegment = (segment: string, key: string) => {
+    return segment.split('').map((char, index) => {
+      if (char === '{' || char === '}') {
+        return <span key={`${key}-${index}`} className="text-syntax-highlight">{char}</span>;
+      }
+      return char;
+    });
+  };
+
   const renderHighlightedCode = () => {
     // We append a newline to ensure the last line is always rendered
     const codeToRender = code + '\n';
-    return codeToRender.split('').map((char, index) => {
-        if (char === '{' || char === '}') {
-            return <span key={index} className="text-syntax-highlight">{char}</span>;
-        }
-        return char;
-    });
+    const stringRegex = /"([^"\\]|\\.)*"/g;
+    
+    let lastIndex = 0;
+    const parts = [];
+    let match;
+
+    while((match = stringRegex.exec(codeToRender)) !== null) {
+      const nonStringPart = codeToRender.substring(lastIndex, match.index);
+      if (nonStringPart) {
+        parts.push(
+          <React.Fragment key={`non-string-${lastIndex}`}>
+            {highlightSegment(nonStringPart, `non-string-segment-${lastIndex}`)}
+          </React.Fragment>
+        );
+      }
+
+      const stringPart = match[0];
+      parts.push(<span key={`string-${match.index}`} className="text-syntax-string">{stringPart}</span>);
+      lastIndex = match.index + stringPart.length;
+    }
+    
+    const remainingPart = codeToRender.substring(lastIndex);
+    if(remainingPart) {
+       parts.push(
+          <React.Fragment key={`non-string-${lastIndex}`}>
+            {highlightSegment(remainingPart, `remaining-segment-${lastIndex}`)}
+          </React.Fragment>
+        );
+    }
+    
+    return parts;
   };
 
   return (

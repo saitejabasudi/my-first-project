@@ -49,6 +49,7 @@ export default {
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         'syntax-highlight': 'hsl(var(--syntax-highlight))',
+        'syntax-string': 'hsl(var(--syntax-string))',
         chart: {
           '1': 'hsl(var(--chart-1))',
           '2': 'hsl(var(--chart-2))',
