@@ -15,8 +15,8 @@ export function Logo({ className }: { className?: string }) {
       className={cn('h-6 w-6', className)}
     >
       <rect width="18" height="18" x="3" y="3" rx="2"/>
-      <path d="m10 9-2 2 2 2"/>
-      <path d="m14 9 2 2-2 2"/>
+      <path d="m10 8-2 4 2 4"/>
+      <path d="m14 8 2 4-2 4"/>
     </svg>
   );
 }
