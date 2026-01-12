@@ -19,25 +19,6 @@ const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const OUTPUT_STORAGE_KEY = 'java-ide-output';
 
 
-function formatJavaCode(code: string): string {
-  if (!code) return '';
-  const lines = code.split('\n');
-  let indentLevel = 0;
-  const indentSize = 4;
-  const formattedLines = lines.map((line) => {
-    const trimmedLine = line.trim();
-    if (trimmedLine.startsWith('}') || trimmedLine.startsWith(')')) {
-      indentLevel = Math.max(0, indentLevel - 1);
-    }
-    const indentedLine = ' '.repeat(indentLevel * indentSize) + trimmedLine;
-    if (trimmedLine.endsWith('{') || trimmedLine.endsWith('(')) {
-      indentLevel++;
-    }
-    return indentedLine;
-  });
-  return formattedLines.join('\n');
-}
-
 function lintJavaCode(code: string): string[] {
     const errors: string[] = [];
     if (!code) return errors;
