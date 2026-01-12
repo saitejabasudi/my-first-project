@@ -67,7 +67,7 @@ function lintJavaCode(code: string): string[] {
             !line.match(/^\s*if\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*else(\s*if\s*\(.*\))?\s*\{?$/) &&
             !line.match(/^\s*while\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*try\s*(\{?|.*)?$/) &&
+            !line.match(/^\s*try(\s*\{?|.*)?$/) &&
             !line.match(/^\s*catch\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*finally\s*\{?$/)
         ) {
@@ -293,5 +293,3 @@ export function IdeLayout() {
     </div>
   );
 }
-
-    
