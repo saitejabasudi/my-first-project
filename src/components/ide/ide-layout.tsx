@@ -53,7 +53,7 @@ function lintJavaCode(code: string): string[] {
             !trimmedLine.startsWith('*') &&
             !trimmedLine.startsWith('import') &&
             !trimmedLine.startsWith('package') &&
-            !/^\s*(public|private|protected|static|final|abstract|class|interface|enum|@interface)/.test(trimmedLine) &&
+            !/^\s*(public|private|protected|static|final|abstract|class|interface|enum|@interface|implements|extends)/.test(trimmedLine) &&
             !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*[\w<>[\]]+\s+\w+\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*@/) && // annotations
             !line.match(/^\s*}/) && // closing brace on new line
@@ -102,16 +102,30 @@ export function IdeLayout() {
   const [lintingEnabled, setLintingEnabled] = useState(true);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const newFileJson = localStorage.getItem('newlyCreatedFile');
+    if (newFileJson) {
+      const newFile = JSON.parse(newFileJson);
+      // Avoid adding duplicates
+      if (!files.some(f => f.id === newFile.id)) {
+        const updatedFiles = [...files, newFile];
+        setFiles(updatedFiles);
+        setActiveFileId(newFile.id);
+      }
+      localStorage.removeItem('newlyCreatedFile');
+    }
+  }, []);
+
   const activeFile = files.find(f => f.id === activeFileId) || files[0];
   const debouncedCode = useDebounce(activeFile.content, 500);
 
   useEffect(() => {
     if (lintingEnabled) {
       const errors = lintJavaCode(debouncedCode);
-      setTerminalOutput(prev => {
+       setTerminalOutput(prev => {
         const otherMessages = prev.filter(l => !l.startsWith('Error'));
         if (errors.length > 0) {
-          return [...otherMessages, ...errors];
+          return [...errors, ...otherMessages];
         }
         return otherMessages;
       });
@@ -158,7 +172,7 @@ export function IdeLayout() {
     setTimeout(() => {
       const errors = lintJavaCode(activeFile.content);
       if (errors.length > 0) {
-        setTerminalOutput((prev) => [...prev, 'Compilation failed with errors:', ...errors]);
+        setTerminalOutput((prev) => ['Compilation failed with errors:', ...errors]);
         setIsCompiling(false);
         toast({
           variant: 'destructive',
@@ -168,16 +182,12 @@ export function IdeLayout() {
         return;
       }
 
-      setTerminalOutput((prev) => [...prev, 'Compilation successful.']);
-      setTerminalOutput((prev) => [...prev, '> Running...']);
-      setTimeout(() => {
-        setTerminalOutput((prev) => [...prev, ...activeFile.output.split('\n'), '\nExecution finished.']);
-        setIsCompiling(false);
-        toast({
-          title: 'Execution Complete',
-          description: `${activeFile.name} ran successfully.`,
-        });
-      }, 500);
+      setTerminalOutput((prev) => ['Compilation successful.', '> Running...', ...activeFile.output.split('\n'), '\nExecution finished.']);
+      setIsCompiling(false);
+      toast({
+        title: 'Execution Complete',
+        description: `${activeFile.name} ran successfully.`,
+      });
     }, 1500);
   }, [activeFile, toast]);
 
@@ -190,6 +200,10 @@ export function IdeLayout() {
   const handleClearTerminal = useCallback(() => {
     setTerminalOutput([]);
   }, []);
+  
+  if (!activeFile) {
+    return null; // Or a loading state
+  }
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
@@ -219,9 +233,7 @@ export function IdeLayout() {
             </div>
           {files.map(file => (
             <TabsContent key={file.id} value={file.id} className="flex-1 flex flex-col overflow-hidden mt-0">
-                <div className="flex-1 overflow-hidden">
-                    <CodeEditor code={file.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
-                </div>
+                <CodeEditor code={file.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
             </TabsContent>
           ))}
         </Tabs>
