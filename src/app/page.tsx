@@ -60,12 +60,9 @@ export default function ProjectSelectionPage() {
     setProjects(updatedProjects);
     localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
     
-    // Store new file ID in localStorage to be picked up by the IDE page
-    localStorage.setItem('newlyCreatedFileId', newFile.id);
-
     setOpen(false);
     setNewProjectName('');
-    router.push('/ide');
+    router.push(`/ide?file=${newFile.id}`);
   };
 
   return (

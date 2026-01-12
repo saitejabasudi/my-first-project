@@ -118,12 +118,8 @@ export function IdeLayout() {
     setFiles(initialFiles);
 
     const fileIdFromUrl = searchParams.get('file');
-    const newFileId = localStorage.getItem('newlyCreatedFileId');
     
-    if (newFileId) {
-      setActiveFileId(newFileId);
-      localStorage.removeItem('newlyCreatedFileId');
-    } else if (fileIdFromUrl && initialFiles.some(f => f.id === fileIdFromUrl)) {
+    if (fileIdFromUrl && initialFiles.some(f => f.id === fileIdFromUrl)) {
       setActiveFileId(fileIdFromUrl);
     } else if (initialFiles.length > 0) {
       setActiveFileId(initialFiles[0].id);
