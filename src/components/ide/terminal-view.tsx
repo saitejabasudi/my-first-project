@@ -1,15 +1,12 @@
 "use client";
 import React, { useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2 } from 'lucide-react';
 
 type TerminalViewProps = {
   output: string[];
-  onClear: () => void;
 };
 
-export function TerminalView({ output, onClear }: TerminalViewProps) {
+export function TerminalView({ output }: TerminalViewProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

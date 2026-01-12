@@ -58,7 +58,11 @@ export default function ProjectSelectionPage() {
 
     const updatedProjects = [...projects, newFile];
     setProjects(updatedProjects);
-    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
+    try {
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
+    } catch (error) {
+        console.error("Failed to save projects to localStorage", error);
+    }
     
     setOpen(false);
     setNewProjectName('');
@@ -66,12 +70,13 @@ export default function ProjectSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground font-body">
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-2 rounded-lg">
             <Code className="h-6 w-6 text-primary" />
           </div>
+          <h1 className="text-xl font-semibold">JavaDroid IDE</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={toggleTheme}>
@@ -86,9 +91,9 @@ export default function ProjectSelectionPage() {
         </div>
       </header>
       <main className="p-4 sm:p-6">
-        <Card className="mb-8 shadow-lg">
+        <Card className="mb-8 shadow-lg bg-card">
           <CardContent className="pt-6">
-            <h1 className="text-3xl font-bold mb-2">
+            <h1 className="text-3xl font-bold mb-2 font-headline">
               Code Java on the go, <span className="text-primary">Professionally.</span>
             </h1>
             <p className="text-muted-foreground mb-6">
@@ -138,7 +143,7 @@ export default function ProjectSelectionPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((file) => (
             <Link href={`/ide?file=${file.id}`} key={file.id} passHref>
-                <Card className="hover:border-primary transition-colors cursor-pointer">
+                <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
                   <CardContent className="pt-6 flex items-start gap-4">
                       <div className="bg-secondary p-3 rounded-lg">
                           <Code className="h-6 w-6 text-secondary-foreground" />

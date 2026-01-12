@@ -106,7 +106,7 @@ export function IdeLayout() {
   const [allFiles, setAllFiles] = useState<JavaFile[]>([]);
   const [activeFile, setActiveFile] = useState<JavaFile | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
-  const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to Java Studio Pro! Ready to compile.']);
+  const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to JavaDroid IDE! Ready to compile.']);
   const [lintingEnabled, setLintingEnabled] = useState(true);
   const [activeTab, setActiveTab] = useState('editor');
   const { toast } = useToast();
@@ -188,7 +188,11 @@ export function IdeLayout() {
   const handleFileClose = useCallback((fileIdToClose: string) => {
     setAllFiles(currentFiles => {
         const updatedFiles = currentFiles.filter(f => f.id !== fileIdToClose);
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
+        try {
+            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
+        } catch(e) {
+            console.error(e)
+        }
 
         if (activeFile?.id === fileIdToClose) {
             if (updatedFiles.length > 0) {
@@ -206,7 +210,18 @@ export function IdeLayout() {
 
     setIsCompiling(true);
     const initialOutput = [`> Compiling ${activeFile.name}...`];
-    localStorage.setItem(OUTPUT_STORAGE_KEY, JSON.stringify(initialOutput));
+    try {
+      localStorage.setItem(OUTPUT_STORAGE_KEY, JSON.stringify(initialOutput));
+    } catch (error) {
+      console.error('Failed to save to localStorage', error);
+      toast({
+          variant: 'destructive',
+          title: 'Local Storage Error',
+          description: `Could not save compilation output.`,
+      });
+      setIsCompiling(false);
+      return;
+    }
     
     router.push(`/ide/output?file=${activeFile.id}`);
 
@@ -229,9 +244,13 @@ export function IdeLayout() {
         });
       }
       
-      localStorage.setItem(OUTPUT_STORAGE_KEY, JSON.stringify(finalOutput));
-      // This will trigger a re-render on the output page if it's already open
-      window.dispatchEvent(new Event('storage'));
+      try {
+        localStorage.setItem(OUTPUT_STORAGE_KEY, JSON.stringify(finalOutput));
+        // This will trigger a re-render on the output page if it's already open
+        window.dispatchEvent(new Event('storage'));
+      } catch (error) {
+         console.error('Failed to save to localStorage', error);
+      }
 
       setIsCompiling(false);
     }, 1500);
@@ -290,12 +309,12 @@ export function IdeLayout() {
                     </Button>
                 </div>
             </div>
-              <TerminalView output={terminalOutput} onClear={handleClearTerminal} />
+              <TerminalView output={terminalOutput} />
             </TabsContent>
           </Tabs>
 
-          <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-16 w-16 rounded-full bg-green-500 hover:bg-green-600 shadow-lg" size="icon">
-            <Play className="h-8 w-8 text-white fill-white" />
+          <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-lg" size="icon">
+            <Play className="h-8 w-8 text-primary-foreground fill-primary-foreground" />
           </Button>
         </div>
       </main>

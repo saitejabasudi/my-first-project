@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { TerminalView } from '@/components/ide/terminal-view';
 import { Card } from '@/components/ui/card';
 
@@ -16,17 +16,25 @@ export default function OutputPage() {
   const fileId = searchParams.get('file');
 
   useEffect(() => {
-    try {
-      const storedOutput = localStorage.getItem(OUTPUT_STORAGE_KEY);
-      if (storedOutput) {
-        setOutput(JSON.parse(storedOutput));
-      } else {
-        setOutput(['No output found.']);
-      }
-    } catch (error) {
-      console.error("Failed to load output from localStorage", error);
-      setOutput(['Error loading output.']);
-    }
+    const updateOutput = () => {
+        try {
+            const storedOutput = localStorage.getItem(OUTPUT_STORAGE_KEY);
+            if (storedOutput) {
+                setOutput(JSON.parse(storedOutput));
+            } else {
+                setOutput(['No output found.']);
+            }
+        } catch (error) {
+            console.error("Failed to load output from localStorage", error);
+            setOutput(['Error loading output.']);
+        }
+    };
+    
+    updateOutput();
+
+    window.addEventListener('storage', updateOutput);
+    return () => window.removeEventListener('storage', updateOutput);
+
   }, []);
 
   const handleBackToEditor = () => {
@@ -51,13 +59,17 @@ export default function OutputPage() {
           </Button>
           <div>
             <h1 className="text-base font-semibold">Compilation Output</h1>
-            <p className="text-xs text-muted-foreground">Java Studio Pro</p>
+            <p className="text-xs text-muted-foreground">JavaDroid IDE</p>
           </div>
         </div>
+        <Button variant="ghost" size="icon" onClick={handleClear}>
+            <Trash2 className="h-5 w-5" />
+            <span className="sr-only">Clear Output</span>
+        </Button>
       </header>
       <main className="flex-1 overflow-auto p-4">
         <Card className="h-full">
-            <TerminalView output={output} onClear={handleClear} />
+            <TerminalView output={output} />
         </Card>
       </main>
     </div>
