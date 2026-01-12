@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'JavaDroid IDE',
+  title: 'Java Studio Pro',
   description: 'A mobile-first Java IDE for Android, built with Next.js.',
 };
 

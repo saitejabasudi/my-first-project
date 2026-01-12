@@ -2,15 +2,16 @@
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { JavaFile } from '@/lib/mock-files';
-import { FileCode, Folder } from 'lucide-react';
+import { FileCode, Folder, X } from 'lucide-react';
 
 type FileExplorerProps = {
   files: JavaFile[];
   activeFileId: string;
-  onFileSelect: (file: JavaFile) => void;
+  onFileSelect: (fileId: string) => void;
+  onFileClose: (fileId: string) => void;
 };
 
-export function FileExplorer({ files, activeFileId, onFileSelect }: FileExplorerProps) {
+export function FileExplorer({ files, activeFileId, onFileSelect, onFileClose }: FileExplorerProps) {
   return (
     <div className="flex h-full flex-col bg-card text-card-foreground">
       <div className="p-4 border-b">
@@ -22,15 +23,27 @@ export function FileExplorer({ files, activeFileId, onFileSelect }: FileExplorer
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
           {files.map((file) => (
-            <Button
-              key={file.id}
-              variant={file.id === activeFileId ? 'secondary' : 'ghost'}
-              className="w-full justify-start gap-2"
-              onClick={() => onFileSelect(file)}
-            >
-              <FileCode className="h-4 w-4 text-muted-foreground" />
-              <span className="truncate font-code">{file.name}</span>
-            </Button>
+            <div key={file.id} className="relative group">
+              <Button
+                variant={file.id === activeFileId ? 'secondary' : 'ghost'}
+                className="w-full justify-start gap-2"
+                onClick={() => onFileSelect(file.id)}
+              >
+                <FileCode className="h-4 w-4 text-muted-foreground" />
+                <span className="truncate font-code">{file.name}</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onFileClose(file.id);
+                }}
+              >
+                  <X className="h-4 w-4" />
+              </Button>
+            </div>
           ))}
         </div>
       </ScrollArea>

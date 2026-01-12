@@ -3,16 +3,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { useToast } from '@/hooks/use-toast';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { IdeHeader } from './ide-header';
-import { FileExplorer } from './file-explorer';
 import { CodeEditor } from './code-editor';
 import { TerminalView } from './terminal-view';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Play, Trash2, X } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 function formatJavaCode(code: string): string {
   const lines = code.split('\n');
@@ -32,27 +31,30 @@ function formatJavaCode(code: string): string {
   return formattedLines.join('\n');
 }
 
-// A simple lightweight Java linter
 function lintJavaCode(code: string): string[] {
     const errors: string[] = [];
     const lines = code.split('\n');
-    let braceStack = 0;
-    let parenStack = 0;
+    const braceStack: number[] = [];
+    const parenStack: number[] = [];
 
     lines.forEach((line, index) => {
         const lineNumber = index + 1;
         const trimmedLine = line.trim();
 
-        // Basic semicolon check for simple statements
         if (
             trimmedLine.length > 0 &&
             !trimmedLine.endsWith(';') &&
             !trimmedLine.endsWith('{') &&
             !trimmedLine.endsWith('}') &&
             !trimmedLine.startsWith('//') &&
+            !trimmedLine.startsWith('/*') &&
+            !trimmedLine.endsWith('*/') &&
+            !trimmedLine.startsWith('*') &&
             !trimmedLine.startsWith('import') &&
             !trimmedLine.startsWith('package') &&
-            !line.match(/^\s*(public|private|protected|static|final|abstract|class|interface|enum)/) &&
+            !line.match(/^\s*(public|private|protected|class|interface|enum|static|final|abstract|void|int|String)/) &&
+            !line.match(/^\s*@/) && // annotations
+            !line.match(/^\s*}/) && // closing brace on new line
             !line.match(/^\s*for\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*if\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*else(\s*if\s*\(.*\))?\s*\{?$/) &&
@@ -61,28 +63,30 @@ function lintJavaCode(code: string): string[] {
             !line.match(/^\s*catch\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*finally\s*\{?$/)
         ) {
-            errors.push(`Error at line ${lineNumber}: Missing semicolon or invalid statement.`);
+            errors.push(`Error at line ${lineNumber}: Missing semicolon or incomplete statement.`);
         }
         
-        // Stack-based brace and parenthesis checking
-        for (const char of line) {
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
             if (char === '{') {
-                braceStack++;
+                braceStack.push(lineNumber);
             } else if (char === '}') {
-                braceStack--;
+                if(braceStack.length === 0) errors.push(`Error at line ${lineNumber}: Extra closing brace.`);
+                else braceStack.pop();
             } else if (char === '(') {
-                parenStack++;
+                parenStack.push(lineNumber);
             } else if (char === ')') {
-                parenStack--;
+                if (parenStack.length === 0) errors.push(`Error at line ${lineNumber}: Extra closing parenthesis.`);
+                else parenStack.pop();
             }
         }
     });
     
-    if (braceStack !== 0) {
-        errors.push("Error: Mismatched curly braces in the file.");
+    if (braceStack.length > 0) {
+        errors.push(`Error: Mismatched curly braces. Unclosed brace from line ${braceStack.pop()}.`);
     }
-    if (parenStack !== 0) {
-        errors.push("Error: Mismatched parentheses in the file.");
+    if (parenStack.length > 0) {
+        errors.push(`Error: Mismatched parentheses. Unclosed parenthesis from line ${parenStack.pop()}.`);
     }
 
 
@@ -90,13 +94,14 @@ function lintJavaCode(code: string): string[] {
 }
 
 export function IdeLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeFile, setActiveFile] = useState<JavaFile>(mockFiles[0]);
+  const [files, setFiles] = useState<JavaFile[]>(mockFiles);
+  const [activeFileId, setActiveFileId] = useState<string>(mockFiles[0].id);
   const [isCompiling, setIsCompiling] = useState(false);
-  const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to JavaDroid IDE! Ready to compile.']);
+  const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to Java Studio Pro! Ready to compile.']);
   const [lintingEnabled, setLintingEnabled] = useState(true);
   const { toast } = useToast();
 
+  const activeFile = files.find(f => f.id === activeFileId) || files[0];
   const debouncedCode = useDebounce(activeFile.content, 500);
 
   useEffect(() => {
@@ -115,19 +120,34 @@ export function IdeLayout() {
 
 
   const handleFileSelect = useCallback(
-    (file: JavaFile) => {
-      if (file.id !== activeFile.id) {
-        setActiveFile(file);
-        setTerminalOutput(['Welcome to JavaDroid IDE! Ready to compile.']);
+    (fileId: string) => {
+      if (fileId !== activeFileId) {
+        setActiveFileId(fileId);
+        setTerminalOutput(['Welcome to Java Studio Pro! Ready to compile.']);
       }
-      setSidebarOpen(false);
     },
-    [activeFile.id]
+    [activeFileId]
   );
+  
+  const handleCloseFile = (fileId: string) => {
+    if (files.length === 1) {
+        toast({ title: "Cannot close the last file", variant: "destructive"});
+        return;
+    }
+    const fileIndex = files.findIndex(f => f.id === fileId);
+    const newFiles = files.filter(f => f.id !== fileId);
+    setFiles(newFiles);
+
+    if (activeFileId === fileId) {
+        const newActiveIndex = Math.max(0, fileIndex -1);
+        setActiveFileId(newFiles[newActiveIndex].id);
+    }
+  }
+
 
   const handleCodeChange = useCallback((newCode: string) => {
-    setActiveFile((prev) => ({ ...prev, content: newCode }));
-  }, []);
+    setFiles(files => files.map(f => f.id === activeFileId ? {...f, content: newCode} : f));
+  }, [activeFileId]);
 
   const handleCompile = useCallback(() => {
     setIsCompiling(true);
@@ -161,51 +181,61 @@ export function IdeLayout() {
 
   const handleFormatCode = useCallback(() => {
     const formattedCode = formatJavaCode(activeFile.content);
-    setActiveFile((prev) => ({ ...prev, content: formattedCode }));
+    setFiles(files => files.map(f => f.id === activeFileId ? {...f, content: formattedCode} : f));
     toast({ description: 'Code formatted.' });
-  }, [activeFile.content, toast]);
+  }, [activeFile.content, activeFileId, toast]);
 
   const handleClearTerminal = useCallback(() => {
     setTerminalOutput([]);
   }, []);
 
   return (
-    <div className="flex h-screen flex-col bg-background">
-      <IdeHeader
-        activeFile={activeFile}
-        isCompiling={isCompiling}
-        onCompile={handleCompile}
-        onToggleSidebar={() => setSidebarOpen(true)}
-      />
-      <main className="flex flex-1 overflow-hidden">
-        <aside className="hidden w-72 border-r md:block">
-          <FileExplorer files={mockFiles} activeFileId={activeFile.id} onFileSelect={handleFileSelect} />
-        </aside>
-        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetContent side="left" className="w-72 p-0 border-r-0">
-            <FileExplorer files={mockFiles} activeFileId={activeFile.id} onFileSelect={handleFileSelect} />
-          </SheetContent>
-        </Sheet>
-        <div className="flex flex-1 flex-col">
-          <div className="flex-1 overflow-hidden">
-            <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
-          </div>
-          <div className="flex h-1/3 min-h-[150px] flex-col border-t">
-            <div className="flex items-center justify-between border-b px-4 py-2">
-                <h3 className="font-semibold text-sm">Terminal</h3>
-                <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch id="linting-toggle" checked={lintingEnabled} onCheckedChange={setLintingEnabled} />
-                      <Label htmlFor="linting-toggle" className="text-sm">Real-time Errors</Label>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={handleClearTerminal} aria-label="Clear Terminal">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                </div>
+    <div className="flex h-screen flex-col bg-background text-foreground">
+      <IdeHeader activeFile={activeFile} />
+      <main className="flex flex-1 flex-col overflow-hidden relative">
+        <Tabs value={activeFileId} onValueChange={handleFileSelect} className="flex flex-col flex-1 overflow-hidden">
+            <div className="px-4 border-b">
+                <TabsList className="bg-transparent p-0">
+                    {files.map(file => (
+                    <TabsTrigger key={file.id} value={file.id} className="relative data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 border-primary rounded-none">
+                        {file.name}
+                        <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-full w-6 hover:bg-transparent" onClick={(e) => { e.stopPropagation(); handleCloseFile(file.id);}}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </TabsTrigger>
+                    ))}
+                </TabsList>
             </div>
-            <TerminalView output={terminalOutput} onClear={handleClearTerminal} />
+          {files.map(file => (
+            <TabsContent key={file.id} value={file.id} className="flex-1 overflow-hidden mt-0">
+               <div className="flex flex-1 flex-col h-full">
+                    <div className="flex-1 overflow-hidden">
+                        <CodeEditor code={file.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
+                    </div>
+                </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+
+        <div className="flex h-1/3 min-h-[150px] flex-col border-t">
+          <div className="flex items-center justify-between border-b px-4 py-2">
+              <h3 className="font-semibold text-sm">Terminal</h3>
+              <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch id="linting-toggle" checked={lintingEnabled} onCheckedChange={setLintingEnabled} />
+                    <Label htmlFor="linting-toggle" className="text-sm">Real-time Errors</Label>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={handleClearTerminal} aria-label="Clear Terminal">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+              </div>
           </div>
+          <TerminalView output={terminalOutput} onClear={handleClearTerminal} />
         </div>
+
+        <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-24 right-6 h-16 w-16 rounded-full bg-green-500 hover:bg-green-600 shadow-lg" size="icon">
+          <Play className="h-8 w-8 text-white fill-white" />
+        </Button>
       </main>
     </div>
   );
