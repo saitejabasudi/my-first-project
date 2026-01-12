@@ -11,10 +11,29 @@ import { Label } from '@/components/ui/label';
 import { Moon, Sun, Share2, MoreVertical, History, Plus } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { Logo } from '@/components/logo';
+import { Progress } from '@/components/ui/progress';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
+function SplashScreen({ progress }: { progress: number }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground font-body">
+      <div className="flex flex-col items-center justify-center flex-1">
+        <div className="bg-card p-4 rounded-2xl shadow-lg mb-4">
+          <Logo className="h-16 w-16 text-primary" />
+        </div>
+        <h1 className="text-3xl font-bold text-primary mb-2 font-headline">Java Studio Pro</h1>
+        <p className="text-muted-foreground">Initializing Environment ...</p>
+      </div>
+      <Progress value={progress} className="w-full h-1 fixed bottom-0 left-0 rounded-none" />
+    </div>
+  );
+}
+
+
 export default function ProjectSelectionPage() {
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [open, setOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
@@ -22,6 +41,26 @@ export default function ProjectSelectionPage() {
   const router = useRouter();
 
   useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 20);
+
+    setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+
     try {
       const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
       if (storedProjectsJson) {
@@ -38,7 +77,7 @@ export default function ProjectSelectionPage() {
     // Set initial theme
     const isDark = document.documentElement.classList.contains('dark');
     setIsDarkMode(isDark);
-  }, []);
+  }, [loading]);
 
   const toggleTheme = () => {
     const newIsDarkMode = !isDarkMode;
@@ -69,6 +108,10 @@ export default function ProjectSelectionPage() {
     setNewProjectName('');
     router.push(`/ide?file=${newFile.id}`);
   };
+
+  if (loading) {
+    return <SplashScreen progress={progress} />;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground font-body">
