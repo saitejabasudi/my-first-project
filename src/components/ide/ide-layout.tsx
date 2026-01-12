@@ -53,7 +53,7 @@ function lintJavaCode(code: string): string[] {
             !trimmedLine.startsWith('import') &&
             !trimmedLine.startsWith('package') &&
             !line.match(/^\s*(public|private|protected|static|final|abstract)?\s*(class|interface|enum|@interface)/) &&
-            !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*\w+\s+\w+\s*\(.*\)\s*\{?$/) &&
+            !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*[\w<>[\]]+\s+\w+\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*@/) && // annotations
             !line.match(/^\s*}/) && // closing brace on new line
             !line.match(/^\s*for\s*\(.*\)\s*\{?$/) &&
@@ -200,9 +200,18 @@ export function IdeLayout() {
                     {files.map(file => (
                     <TabsTrigger key={file.id} value={file.id} className="relative data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 border-primary rounded-none pr-8">
                         {file.name}
-                        <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-full w-6 hover:bg-transparent" onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCloseFile(file.id);}}>
+                        <div 
+                            role="button"
+                            aria-label={`Close ${file.name}`}
+                            className="absolute top-0 right-0 h-full w-8 flex items-center justify-center rounded-sm hover:bg-accent"
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                e.preventDefault(); 
+                                handleCloseFile(file.id);
+                            }}
+                        >
                             <X className="h-4 w-4" />
-                        </Button>
+                        </div>
                     </TabsTrigger>
                     ))}
                 </TabsList>
