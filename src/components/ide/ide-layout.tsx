@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { useToast } from '@/hooks/use-toast';
 import { IdeHeader } from './ide-header';
@@ -13,6 +14,8 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Play, Trash2, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
 function formatJavaCode(code: string): string {
   const lines = code.split('\n');
@@ -95,32 +98,43 @@ function lintJavaCode(code: string): string[] {
 }
 
 export function IdeLayout() {
-  const [files, setFiles] = useState<JavaFile[]>(mockFiles);
-  const [activeFileId, setActiveFileId] = useState<string>(mockFiles[0].id);
+  const [files, setFiles] = useState<JavaFile[]>([]);
+  const [activeFileId, setActiveFileId] = useState<string | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to Java Studio Pro! Ready to compile.']);
   const [lintingEnabled, setLintingEnabled] = useState(true);
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const newFileJson = localStorage.getItem('newlyCreatedFile');
-    if (newFileJson) {
-      const newFile = JSON.parse(newFileJson);
-      // Avoid adding duplicates
-      if (!files.some(f => f.id === newFile.id)) {
-        const updatedFiles = [...files, newFile];
-        setFiles(updatedFiles);
-        setActiveFileId(newFile.id);
-      }
-      localStorage.removeItem('newlyCreatedFile');
+    let initialFiles: JavaFile[] = [];
+    try {
+      const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
+      initialFiles = storedProjectsJson ? JSON.parse(storedProjectsJson) : mockFiles;
+    } catch (error) {
+      console.error("Failed to load projects from localStorage", error);
+      initialFiles = mockFiles;
     }
-  }, []);
+    setFiles(initialFiles);
 
-  const activeFile = files.find(f => f.id === activeFileId) || files[0];
-  const debouncedCode = useDebounce(activeFile.content, 500);
+    const fileIdFromUrl = searchParams.get('file');
+    const newFileId = localStorage.getItem('newlyCreatedFileId');
+    
+    if (newFileId) {
+      setActiveFileId(newFileId);
+      localStorage.removeItem('newlyCreatedFileId');
+    } else if (fileIdFromUrl && initialFiles.some(f => f.id === fileIdFromUrl)) {
+      setActiveFileId(fileIdFromUrl);
+    } else if (initialFiles.length > 0) {
+      setActiveFileId(initialFiles[0].id);
+    }
+  }, [searchParams]);
+
+  const activeFile = files.find(f => f.id === activeFileId);
+  const debouncedCode = useDebounce(activeFile?.content ?? '', 500);
 
   useEffect(() => {
-    if (lintingEnabled) {
+    if (lintingEnabled && activeFile) {
       const errors = lintJavaCode(debouncedCode);
        setTerminalOutput(prev => {
         const otherMessages = prev.filter(l => !l.startsWith('Error'));
@@ -132,7 +146,7 @@ export function IdeLayout() {
     } else {
        setTerminalOutput(prev => prev.filter(l => !l.startsWith('Error')));
     }
-  }, [debouncedCode, lintingEnabled]);
+  }, [debouncedCode, lintingEnabled, activeFile]);
 
 
   const handleFileSelect = useCallback(
@@ -146,13 +160,18 @@ export function IdeLayout() {
   );
   
   const handleCloseFile = (fileId: string) => {
-    if (files.length === 1) {
+    if (files.length <= 1) {
         toast({ title: "Cannot close the last file", variant: "destructive"});
         return;
     }
     const fileIndex = files.findIndex(f => f.id === fileId);
+    
+    // Optimistically update UI
     const newFiles = files.filter(f => f.id !== fileId);
     setFiles(newFiles);
+
+    // Update localStorage
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(newFiles));
 
     if (activeFileId === fileId) {
         const newActiveIndex = Math.max(0, fileIndex -1);
@@ -162,10 +181,14 @@ export function IdeLayout() {
 
 
   const handleCodeChange = useCallback((newCode: string) => {
-    setFiles(files => files.map(f => f.id === activeFileId ? {...f, content: newCode} : f));
-  }, [activeFileId]);
+    const updatedFiles = files.map(f => f.id === activeFileId ? {...f, content: newCode} : f);
+    setFiles(updatedFiles);
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
+  }, [activeFileId, files]);
 
   const handleCompile = useCallback(() => {
+    if (!activeFile) return;
+
     setIsCompiling(true);
     setTerminalOutput((prev) => [...prev, `\n> Compiling ${activeFile.name}...`]);
 
@@ -192,17 +215,24 @@ export function IdeLayout() {
   }, [activeFile, toast]);
 
   const handleFormatCode = useCallback(() => {
+    if (!activeFile) return;
     const formattedCode = formatJavaCode(activeFile.content);
-    setFiles(files => files.map(f => f.id === activeFileId ? {...f, content: formattedCode} : f));
+    const updatedFiles = files.map(f => f.id === activeFileId ? {...f, content: formattedCode} : f)
+    setFiles(updatedFiles);
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
     toast({ description: 'Code formatted.' });
-  }, [activeFile.content, activeFileId, toast]);
+  }, [activeFile, activeFileId, files, toast]);
 
   const handleClearTerminal = useCallback(() => {
     setTerminalOutput([]);
   }, []);
   
-  if (!activeFile) {
-    return null; // Or a loading state
+  if (!activeFile || !activeFileId) {
+    return (
+        <div className="flex h-screen w-full items-center justify-center">
+            Loading...
+        </div>
+    );
   }
 
   return (

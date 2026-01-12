@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -11,11 +11,33 @@ import { Label } from '@/components/ui/label';
 import { Code, Moon, Sun, Share2, MoreVertical, History, Plus } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 
+const PROJECTS_STORAGE_KEY = 'java-ide-projects';
+
 export default function ProjectSelectionPage() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [open, setOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [projects, setProjects] = useState<JavaFile[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    try {
+      const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
+      if (storedProjectsJson) {
+        setProjects(JSON.parse(storedProjectsJson));
+      } else {
+        setProjects(mockFiles);
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+      }
+    } catch (error) {
+      console.error("Failed to load projects from localStorage", error);
+      setProjects(mockFiles);
+    }
+    
+    // Set initial theme
+    const isDark = document.documentElement.classList.contains('dark');
+    setIsDarkMode(isDark);
+  }, []);
 
   const toggleTheme = () => {
     const newIsDarkMode = !isDarkMode;
@@ -34,8 +56,12 @@ export default function ProjectSelectionPage() {
       output: `Hello, ${formattedName}!`,
     };
 
-    // Store new file in localStorage to be picked up by the IDE page
-    localStorage.setItem('newlyCreatedFile', JSON.stringify(newFile));
+    const updatedProjects = [...projects, newFile];
+    setProjects(updatedProjects);
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
+    
+    // Store new file ID in localStorage to be picked up by the IDE page
+    localStorage.setItem('newlyCreatedFileId', newFile.id);
 
     setOpen(false);
     setNewProjectName('');
@@ -113,8 +139,8 @@ export default function ProjectSelectionPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {mockFiles.map((file) => (
-            <Link href="/ide" key={file.id} passHref>
+          {projects.map((file) => (
+            <Link href={`/ide?file=${file.id}`} key={file.id} passHref>
                 <Card className="hover:border-primary transition-colors cursor-pointer">
                   <CardContent className="pt-6 flex items-start gap-4">
                       <div className="bg-secondary p-3 rounded-lg">
