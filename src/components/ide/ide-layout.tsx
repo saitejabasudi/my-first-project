@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -8,6 +8,9 @@ import { IdeHeader } from './ide-header';
 import { FileExplorer } from './file-explorer';
 import { CodeEditor } from './code-editor';
 import { TerminalView } from './terminal-view';
+import { useDebounce } from '@/hooks/use-debounce';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 function formatJavaCode(code: string): string {
   const lines = code.split('\n');
@@ -27,12 +30,59 @@ function formatJavaCode(code: string): string {
   return formattedLines.join('\n');
 }
 
+// A simple lightweight Java linter
+function lintJavaCode(code: string): string[] {
+  const errors: string[] = [];
+  const lines = code.split('\n');
+
+  lines.forEach((line, index) => {
+    const lineNumber = index + 1;
+    const trimmedLine = line.trim();
+
+    if (trimmedLine.length > 0 && !trimmedLine.endsWith(';') && !trimmedLine.endsWith('{') && !trimmedLine.endsWith('}') && !trimmedLine.startsWith('public') && !trimmedLine.startsWith('import') && !trimmedLine.startsWith('//')) {
+        if (!line.match(/^\s*for\s*\(.*\)\s*\{?$/) && !line.match(/^\s*if\s*\(.*\)\s*\{?$/) && !line.match(/^\s*else\s*\{?$/) && !line.match(/^\s*while\s*\(.*\)\s*\{?$/)) {
+             errors.push(`Error at line ${lineNumber}: Missing semicolon or invalid statement.`);
+        }
+    }
+
+    const openBraces = (line.match(/{/g) || []).length;
+    const closeBraces = (line.match(/}/g) || []).length;
+    if (openBraces > closeBraces) {
+        // This is a simplification. A real implementation would use a stack.
+    }
+
+    const openParens = (line.match(/\(/g) || []).length;
+    const closeParens = (line.match(/\)/g) || []).length;
+     if (openParens !== closeParens) {
+        errors.push(`Error at line ${lineNumber}: Mismatched parentheses.`);
+    }
+
+  });
+
+  return errors;
+}
+
 export function IdeLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeFile, setActiveFile] = useState<JavaFile>(mockFiles[0]);
   const [isCompiling, setIsCompiling] = useState(false);
   const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to JavaDroid IDE! Ready to compile.']);
+  const [lintingEnabled, setLintingEnabled] = useState(true);
   const { toast } = useToast();
+
+  const debouncedCode = useDebounce(activeFile.content, 500);
+
+  useEffect(() => {
+    if (lintingEnabled) {
+      const errors = lintJavaCode(debouncedCode);
+      if (errors.length > 0) {
+        setTerminalOutput(prev => [...prev.filter(l => !l.startsWith('Error at line')), ...errors]);
+      } else {
+        setTerminalOutput(prev => prev.filter(l => !l.startsWith('Error at line')));
+      }
+    }
+  }, [debouncedCode, lintingEnabled]);
+
 
   const handleFileSelect = useCallback(
     (file: JavaFile) => {
@@ -53,6 +103,18 @@ export function IdeLayout() {
     setTerminalOutput((prev) => [...prev, `\n> Compiling ${activeFile.name}...`]);
 
     setTimeout(() => {
+      const errors = lintJavaCode(activeFile.content);
+      if (errors.length > 0) {
+        setTerminalOutput((prev) => [...prev, 'Compilation failed with errors:', ...errors]);
+        setIsCompiling(false);
+        toast({
+          variant: 'destructive',
+          title: 'Compilation Failed',
+          description: `Please fix the errors in ${activeFile.name}.`,
+        });
+        return;
+      }
+
       setTerminalOutput((prev) => [...prev, 'Compilation successful.']);
       setTerminalOutput((prev) => [...prev, '> Running...']);
       setTimeout(() => {
@@ -97,7 +159,14 @@ export function IdeLayout() {
           <div className="flex-1 overflow-hidden">
             <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
           </div>
-          <div className="h-1/3 min-h-[150px] border-t">
+          <div className="flex h-1/3 min-h-[150px] flex-col border-t">
+            <div className="flex items-center justify-between border-b px-4 py-2">
+                <h3 className="font-semibold text-sm">Terminal</h3>
+                <div className="flex items-center space-x-2">
+                    <Switch id="linting-toggle" checked={lintingEnabled} onCheckedChange={setLintingEnabled} />
+                    <Label htmlFor="linting-toggle" className="text-sm">Real-time Errors</Label>
+                </div>
+            </div>
             <TerminalView output={terminalOutput} onClear={handleClearTerminal} />
           </div>
         </div>

@@ -18,15 +18,18 @@ export function TerminalView({ output, onClear }: TerminalViewProps) {
 
   return (
     <div className="flex h-full flex-col bg-card">
-      <div className="flex flex-shrink-0 items-center justify-between border-b px-4 py-2">
-        <h3 className="font-semibold text-sm">Terminal</h3>
+      <div className="flex-shrink-0 items-center justify-end border-b px-4 py-2 hidden">
         <Button variant="ghost" size="icon" onClick={onClear} aria-label="Clear Terminal">
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
       <ScrollArea className="flex-1">
         <pre className="font-code text-sm text-muted-foreground whitespace-pre-wrap p-4">
-          {output.join('\n')}
+          {output.map((line, index) => (
+            <div key={index} className={line.startsWith('Error') ? 'text-destructive' : ''}>
+              {line}
+            </div>
+          ))}
           <div ref={endRef} />
         </pre>
       </ScrollArea>
