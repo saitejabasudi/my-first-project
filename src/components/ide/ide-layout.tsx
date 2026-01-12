@@ -52,7 +52,8 @@ function lintJavaCode(code: string): string[] {
             !trimmedLine.startsWith('*') &&
             !trimmedLine.startsWith('import') &&
             !trimmedLine.startsWith('package') &&
-            !line.match(/^\s*(public|private|protected|class|interface|enum|static|final|abstract|void|int|String|boolean|char|long|double|float|short|byte)/) &&
+            !line.match(/^\s*(public|private|protected|static|final|abstract)?\s*(class|interface|enum|@interface)/) &&
+            !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*\w+\s+\w+\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*@/) && // annotations
             !line.match(/^\s*}/) && // closing brace on new line
             !line.match(/^\s*for\s*\(.*\)\s*\{?$/) &&
@@ -116,7 +117,7 @@ export function IdeLayout() {
     } else {
        setTerminalOutput(prev => prev.filter(l => !l.startsWith('Error')));
     }
-  }, [debouncedCode, lintingEnabled]);
+  }, [debouncedCode, lintingEnabled, terminalOutput]);
 
 
   const handleFileSelect = useCallback(
@@ -197,9 +198,9 @@ export function IdeLayout() {
             <div className="px-4 border-b">
                 <TabsList className="bg-transparent p-0">
                     {files.map(file => (
-                    <TabsTrigger key={file.id} value={file.id} className="relative data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 border-primary rounded-none">
+                    <TabsTrigger key={file.id} value={file.id} className="relative data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 border-primary rounded-none pr-8">
                         {file.name}
-                        <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-full w-6 hover:bg-transparent" onClick={(e) => { e.stopPropagation(); handleCloseFile(file.id);}}>
+                        <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-full w-6 hover:bg-transparent" onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCloseFile(file.id);}}>
                             <X className="h-4 w-4" />
                         </Button>
                     </TabsTrigger>
