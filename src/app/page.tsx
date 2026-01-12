@@ -77,7 +77,7 @@ export default function ProjectSelectionPage() {
           <div className="bg-primary/10 p-2 rounded-lg">
             <Logo className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-xl font-semibold">JavaDroid IDE</h1>
+          <h1 className="text-xl font-semibold">Java Studio Pro</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={toggleTheme}>

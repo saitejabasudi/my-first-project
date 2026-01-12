@@ -14,8 +14,8 @@ const sourceCodePro = Source_Code_Pro({
 });
 
 export const metadata: Metadata = {
-  title: 'JavaDroid IDE',
-  description: 'A mobile-first Java IDE for Android, built with Next.js.',
+  title: 'Java Studio Pro',
+  description: 'A professional Java IDE, built with Next.js.',
 };
 
 export default function RootLayout({

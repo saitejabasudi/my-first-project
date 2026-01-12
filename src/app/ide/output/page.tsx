@@ -59,7 +59,7 @@ export default function OutputPage() {
           </Button>
           <div>
             <h1 className="text-base font-semibold">Compilation Output</h1>
-            <p className="text-xs text-muted-foreground">JavaDroid IDE</p>
+            <p className="text-xs text-muted-foreground">Java Studio Pro</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={handleClear}>

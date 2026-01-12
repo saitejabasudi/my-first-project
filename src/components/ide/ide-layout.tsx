@@ -86,7 +86,7 @@ export function IdeLayout() {
   const [allFiles, setAllFiles] = useState<JavaFile[]>([]);
   const [activeFile, setActiveFile] = useState<JavaFile | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
-  const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to JavaDroid IDE! Ready to compile.']);
+  const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to Java Studio Pro! Ready to compile.']);
   const [lintingEnabled, setLintingEnabled] = useState(true);
   const [activeTab, setActiveTab] = useState('editor');
   const { toast } = useToast();
