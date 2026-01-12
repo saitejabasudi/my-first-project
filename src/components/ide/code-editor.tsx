@@ -28,7 +28,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
         <div className="flex flex-1 overflow-hidden bg-background">
             <div 
                 ref={lineNumbersRef}
-                className="w-12 text-right pr-2 pt-4 font-code text-base text-muted-foreground select-none overflow-y-hidden"
+                className="w-12 text-right pr-2 pt-4 font-code text-base text-muted-foreground select-none overflow-y-hidden bg-background"
                 aria-hidden="true"
             >
                 {Array.from({ length: lineCount }, (_, i) => (
