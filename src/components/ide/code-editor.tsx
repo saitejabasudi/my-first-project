@@ -27,16 +27,45 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   };
 
   const highlightSegment = (segment: string, key: string) => {
-    return segment.split('').map((char, index) => {
-      if (char === '{' || char === '}') {
-        return <span key={`${key}-${index}`} className="text-syntax-highlight">{char}</span>;
+    const keywordRegex = /\b(if|else|for|while|switch|case|break|continue|return|public|static|void|class|int|String|System|out|println|main)\b/g;
+    let lastIndex = 0;
+    const parts = [];
+    let match;
+
+    while((match = keywordRegex.exec(segment)) !== null) {
+      const nonKeywordPart = segment.substring(lastIndex, match.index);
+       if (nonKeywordPart) {
+        parts.push(
+          <React.Fragment key={`${key}-non-keyword-${lastIndex}`}>
+            {nonKeywordPart.split('').map((char, index) => 
+              (char === '{' || char === '}') ? 
+              <span key={`${key}-brace-${lastIndex}-${index}`} className="text-syntax-highlight">{char}</span> : char
+            )}
+          </React.Fragment>
+        );
       }
-      return char;
-    });
+
+      const keywordPart = match[0];
+      parts.push(<span key={`${key}-keyword-${match.index}`} className="text-syntax-keyword">{keywordPart}</span>);
+      lastIndex = match.index + keywordPart.length;
+    }
+
+    const remainingPart = segment.substring(lastIndex);
+    if(remainingPart) {
+        parts.push(
+          <React.Fragment key={`${key}-remaining-${lastIndex}`}>
+            {remainingPart.split('').map((char, index) => 
+              (char === '{' || char === '}') ? 
+              <span key={`${key}-brace-rem-${lastIndex}-${index}`} className="text-syntax-highlight">{char}</span> : char
+            )}
+          </React.Fragment>
+        );
+    }
+
+    return parts;
   };
 
   const renderHighlightedCode = () => {
-    // We append a newline to ensure the last line is always rendered
     const codeToRender = code + '\n';
     const stringRegex = /"([^"\\]|\\.)*"/g;
     

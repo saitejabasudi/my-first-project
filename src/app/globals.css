@@ -51,6 +51,7 @@
 
     --syntax-highlight: 54 96% 53%; /* Yellow */
     --syntax-string: 139 58% 33%; /* Green */
+    --syntax-keyword: 35 100% 50%; /* Orange */
   }
 
   .dark {
@@ -99,6 +100,7 @@
 
     --syntax-highlight: 54 96% 53%; /* Yellow */
     --syntax-string: 139 58% 53%; /* Green */
+    --syntax-keyword: 35 100% 60%; /* Orange */
   }
 }
 
