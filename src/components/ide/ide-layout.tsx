@@ -17,6 +17,8 @@ import { FileExplorer } from './file-explorer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
+const OUTPUT_STORAGE_KEY = 'java-ide-output';
+
 
 function formatJavaCode(code: string): string {
   if (!code) return '';
@@ -203,30 +205,37 @@ export function IdeLayout() {
     if (!activeFile) return;
 
     setIsCompiling(true);
-    setActiveTab('output');
-    setTerminalOutput((prev) => [...prev, `\n> Compiling ${activeFile.name}...`]);
+    const initialOutput = [`> Compiling ${activeFile.name}...`];
+    localStorage.setItem(OUTPUT_STORAGE_KEY, JSON.stringify(initialOutput));
+    
+    router.push(`/ide/output?file=${activeFile.id}`);
 
     setTimeout(() => {
       const errors = lintJavaCode(activeFile.content);
+      let finalOutput: string[];
+
       if (errors.length > 0) {
-        setTerminalOutput((prev) => ['Compilation failed with errors:', ...errors]);
-        setIsCompiling(false);
+        finalOutput = ['Compilation failed with errors:', ...errors];
         toast({
           variant: 'destructive',
           title: 'Compilation Failed',
           description: `Please fix the errors in ${activeFile.name}.`,
         });
-        return;
+      } else {
+        finalOutput = ['Compilation successful.', '> Running...', ...activeFile.output.split('\n'), '\nExecution finished.'];
+        toast({
+          title: 'Execution Complete',
+          description: `${activeFile.name} ran successfully.`,
+        });
       }
+      
+      localStorage.setItem(OUTPUT_STORAGE_KEY, JSON.stringify(finalOutput));
+      // This will trigger a re-render on the output page if it's already open
+      window.dispatchEvent(new Event('storage'));
 
-      setTerminalOutput((prev) => ['Compilation successful.', '> Running...', ...activeFile.output.split('\n'), '\nExecution finished.']);
       setIsCompiling(false);
-      toast({
-        title: 'Execution Complete',
-        description: `${activeFile.name} ran successfully.`,
-      });
     }, 1500);
-  }, [activeFile, toast]);
+  }, [activeFile, toast, router]);
 
   const handleFormatCode = useCallback(() => {
     if (!activeFile) return;
