@@ -8,8 +8,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Code, Moon, Sun, Share2, MoreVertical, History, Plus } from 'lucide-react';
+import { Moon, Sun, Share2, MoreVertical, History, Plus } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
+import { Logo } from '@/components/logo';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
@@ -74,7 +75,7 @@ export default function ProjectSelectionPage() {
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-2 rounded-lg">
-            <Code className="h-6 w-6 text-primary" />
+            <Logo className="h-6 w-6 text-primary" />
           </div>
           <h1 className="text-xl font-semibold">JavaDroid IDE</h1>
         </div>
@@ -146,7 +147,7 @@ export default function ProjectSelectionPage() {
                 <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
                   <CardContent className="pt-6 flex items-start gap-4">
                       <div className="bg-secondary p-3 rounded-lg">
-                          <Code className="h-6 w-6 text-secondary-foreground" />
+                          <Logo className="h-6 w-6 text-secondary-foreground" />
                       </div>
                       <div>
                           <h3 className="font-semibold">{file.name.replace('.java', '')}</h3>
