@@ -59,16 +59,14 @@ function lintJavaCode(code: string): string[] {
             !trimmedLine.startsWith('import ') &&
             !trimmedLine.startsWith('package ') &&
             !/^\s*(public|private|protected|static|final|abstract|class|interface|enum|@interface|implements|extends)/.test(trimmedLine) &&
+            !line.match(/^\s*@(Override|Deprecated|SuppressWarnings|FunctionalInterface)/) &&
             !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*[\w<>[\]]+\s+\w+\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*@/) &&
             !line.match(/^\s*}/) &&
             !line.match(/^\s*for\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*if\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*else(\s*if\s*\(.*\))?\s*\{?$/) &&
             !line.match(/^\s*while\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*try\s*\{?$/) &&
-            !line.match(/^\s*catch\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*finally\s*\{?$/)
+            !line.match(/^\s*(try|catch|finally)\s*(\(.*\))?\s*\{?$/)
         ) {
             errors.push(`Error at line ${lineNumber}: Missing semicolon or incomplete statement.`);
         }
@@ -113,7 +111,12 @@ export function IdeLayout() {
     let files: JavaFile[] = [];
     try {
       const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
-      files = storedProjectsJson ? JSON.parse(storedProjectsJson) : mockFiles;
+      if (storedProjectsJson) {
+        files = JSON.parse(storedProjectsJson);
+      } else {
+        files = mockFiles;
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+      }
       setAllFiles(files);
     } catch (error) {
       console.error("Failed to load projects from localStorage", error);
@@ -127,7 +130,6 @@ export function IdeLayout() {
     if (fileToLoad) {
       setActiveFile(fileToLoad);
     } else if (files.length > 0) {
-      // Fallback to first file if URL param is invalid or missing
       const firstFile = files[0];
       setActiveFile(firstFile);
       router.replace(`/ide?file=${firstFile.id}`);
@@ -178,13 +180,13 @@ export function IdeLayout() {
   }, [allFiles, router]);
 
   const handleFileClose = useCallback((fileIdToClose: string) => {
-    const remainingFiles = allFiles.filter(f => f.id !== fileIdToClose);
-    setAllFiles(remainingFiles);
-    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(remainingFiles));
+    const updatedFiles = allFiles.filter(f => f.id !== fileIdToClose);
+    setAllFiles(updatedFiles);
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
 
     if (activeFile?.id === fileIdToClose) {
-        if (remainingFiles.length > 0) {
-            handleFileSelect(remainingFiles[0].id);
+        if (updatedFiles.length > 0) {
+            handleFileSelect(updatedFiles[0].id);
         } else {
             router.push('/');
         }
@@ -252,7 +254,7 @@ export function IdeLayout() {
         </div>
         <div className="flex-1 flex flex-col overflow-hidden relative">
           <div className="flex-1 flex flex-col overflow-hidden">
-                <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
+            <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} onFormat={handleFormatCode} />
           </div>
 
           <div className="flex h-1/3 min-h-[150px] flex-col border-t">
