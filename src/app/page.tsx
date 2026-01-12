@@ -17,14 +17,14 @@ const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 function SplashScreen({ progress }: { progress: number }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground font-body">
-      <div className="flex flex-col items-center justify-center flex-1">
+      <div className="flex flex-col items-center">
         <div className="bg-card p-4 rounded-2xl shadow-lg mb-4">
           <Logo className="h-16 w-16 text-primary" />
         </div>
         <h1 className="text-3xl font-bold text-primary mb-2 font-headline">Java Studio Pro</h1>
-        <p className="text-muted-foreground">Initializing Environment ...</p>
+        <p className="text-muted-foreground mb-4">Initializing Environment ...</p>
+        <Progress value={progress} className="w-64 h-1" />
       </div>
-      <Progress value={progress} className="w-full h-1 fixed bottom-0 left-0 rounded-none" />
     </div>
   );
 }
