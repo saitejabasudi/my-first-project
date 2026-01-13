@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Info } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -55,6 +55,15 @@ export default function SettingsPage() {
                 </DialogHeader>
               </DialogContent>
             </Dialog>
+            <Link href="/concepts/statement-completion">
+              <div className="py-4 cursor-pointer flex justify-between items-center">
+                  <div>
+                    <p className="text-base text-foreground">Coding Concepts</p>
+                    <p className="text-sm text-muted-foreground">Learn about statement completion</p>
+                  </div>
+                  <Info className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </Link>
             <SettingsItem title="Donate" value="Buy a cup of coffee for developer.☕" />
             <SettingsItem title="Current Version" value="3.3.8" />
         </div>
