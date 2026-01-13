@@ -7,9 +7,11 @@ import { useToast } from '@/hooks/use-toast';
 import { IdeHeader } from './ide-header';
 import { CodeEditor } from './code-editor';
 import { Button } from '@/components/ui/button';
-import { Play, X } from 'lucide-react';
+import { Play, X, Trash2 } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { AIAssistant } from './ai-assistant';
+import { TerminalView } from './terminal-view';
+import { Card } from '../ui/card';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
@@ -219,8 +221,28 @@ export function IdeLayout() {
                 </Button>
               </div>
           </div>
-          <div className="flex-1 overflow-auto">
-            <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
+          <div className="flex-1 flex flex-col overflow-auto">
+            <div className="flex-1 overflow-auto">
+              <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
+            </div>
+            {showOutput && (
+              <div className="flex-shrink-0 h-1/3 border-t">
+                  <Card className="h-full flex flex-col rounded-none">
+                      <div className="flex items-center justify-between p-2 border-b">
+                          <span className="text-sm font-medium">Output</span>
+                          <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setOutput([])} disabled={isCompiling}>
+                                  <Trash2 className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowOutput(false)}>
+                                  <X className="h-4 w-4" />
+                              </Button>
+                          </div>
+                      </div>
+                      <TerminalView output={output} />
+                  </Card>
+              </div>
+            )}
           </div>
           <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg" size="icon">
             <Play className="h-7 w-7 text-primary-foreground fill-primary-foreground" />
