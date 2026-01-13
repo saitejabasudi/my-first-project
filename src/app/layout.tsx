@@ -17,6 +17,7 @@ const sourceCodePro = Source_Code_Pro({
 export const metadata: Metadata = {
   title: 'JavaDroid IDE',
   description: 'A powerful offline Java IDE for Android, built with Next.js.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
