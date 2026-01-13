@@ -10,6 +10,27 @@ const withPWA = withPWAInit({
   fallbacks: {
     document: '/offline.html',
   },
+  manifest: {
+    name: 'JavaDroid IDE',
+    short_name: 'JavaDroid',
+    description: 'A powerful offline Java IDE for Android, built with Next.js.',
+    background_color: '#ffffff',
+    theme_color: '#ffffff',
+    display: 'standalone',
+    start_url: '/',
+    icons: [
+      {
+        src: '/icons/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/icons/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+    ],
+  },
 });
 
 const nextConfig: NextConfig = {
