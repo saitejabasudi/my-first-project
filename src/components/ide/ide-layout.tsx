@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
@@ -228,29 +229,30 @@ export function IdeLayout() {
     <div className="flex h-screen flex-col bg-background text-foreground">
       <IdeHeader activeFile={activeFile} onRun={handleCompile} isCompiling={isCompiling} mobileSidebar={renderMobileSidebar()} />
       <main className="flex flex-1 flex-col overflow-hidden">
-        {showOutput && (
-          <div className="flex-shrink-0 h-1/3 border-b border-border">
-              <Card className="h-full flex flex-col rounded-none border-0">
-                  <div className="flex items-center justify-between p-2 border-b border-border">
-                      <span className="text-sm font-medium">Output</span>
-                      <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setOutput([])} disabled={isCompiling}>
-                              <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowOutput(false)}>
-                              <X className="h-4 w-4" />
-                          </Button>
-                      </div>
-                  </div>
-                  <TerminalView output={output} />
-              </Card>
-          </div>
-        )}
         <div className="flex-1 overflow-auto">
           <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
         </div>
         <SymbolToolbar onSymbolClick={handleInsertText} />
       </main>
+
+      {showOutput && (
+          <div className="fixed inset-0 z-50 bg-background flex flex-col">
+              <div className="flex items-center justify-between p-2 border-b border-border flex-shrink-0">
+                  <span className="text-sm font-medium px-2">Output</span>
+                  <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOutput([])} disabled={isCompiling}>
+                          <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowOutput(false)}>
+                          <X className="h-4 w-4" />
+                      </Button>
+                  </div>
+              </div>
+              <TerminalView output={output} />
+          </div>
+        )}
     </div>
   );
 }
+
+    
