@@ -45,8 +45,6 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
         parts.push(remainingPart);
     }
 
-    // This part is simplified, as complex brace highlighting mixed with keywords can be tricky.
-    // The main goal is keyword and string highlighting.
     const finalParts = parts.map((part, index) => {
       if (typeof part === 'string') {
         return part.split(/([{}])/g).map((subPart, subIndex) => {
@@ -64,7 +62,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   };
 
   const renderHighlightedCode = () => {
-    const codeToRender = code + '\n'; // Add newline for consistent final line rendering
+    const codeToRender = code + '\n';
     const stringRegex = /"([^"\\]|\\.)*"/g;
     
     const parts: React.ReactNode[] = [];

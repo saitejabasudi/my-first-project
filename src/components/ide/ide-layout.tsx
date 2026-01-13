@@ -86,6 +86,7 @@ export function IdeLayout() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     let files: JavaFile[] = [];
@@ -108,33 +109,37 @@ export function IdeLayout() {
         files = mockFiles;
       } catch (error) {
          console.error("Failed to save default project to localStorage", error);
-         router.push('/');
-         return;
       }
     }
     
     setAllFiles(files);
-  }, [router]);
+    setIsLoaded(true);
+  }, []);
 
   useEffect(() => {
-    if (allFiles.length === 0) return;
+    if (!isLoaded) return;
 
     const fileIdFromUrl = searchParams.get('file');
-    const fileToLoad = allFiles.find(f => f.id === fileIdFromUrl) || allFiles[0];
+    let fileToLoad: JavaFile | undefined;
+
+    if (allFiles.length > 0) {
+      if (fileIdFromUrl) {
+        fileToLoad = allFiles.find(f => f.id === fileIdFromUrl);
+      }
+      if (!fileToLoad) {
+        fileToLoad = allFiles[0];
+      }
+    }
 
     if (fileToLoad) {
-        if (fileToLoad.id !== activeFile?.id) {
-            setActiveFile(fileToLoad);
-        }
-        // ensure URL is correct if it was missing or pointed to a non-existent file
+        setActiveFile(fileToLoad);
         if (fileToLoad.id !== fileIdFromUrl) {
             router.replace(`/ide?file=${fileToLoad.id}`);
         }
     } else {
-        // This case handles when all files have been deleted.
         router.push('/');
     }
-  }, [searchParams, allFiles, router, activeFile]);
+  }, [searchParams, allFiles, router, isLoaded]);
 
   const handleCodeChange = useCallback((newCode: string) => {
     if (!activeFile) return;
@@ -154,13 +159,9 @@ export function IdeLayout() {
   }, [activeFile]);
 
   const handleFileSelect = useCallback((fileId: string) => {
-    const fileToSelect = allFiles.find(f => f.id === fileId);
-    if(fileToSelect) {
-        setActiveFile(fileToSelect);
-        router.push(`/ide?file=${fileId}`);
-        setIsSheetOpen(false);
-    }
-  }, [allFiles, router]);
+    router.push(`/ide?file=${fileId}`);
+    setIsSheetOpen(false);
+  }, [router]);
 
   const handleFileClose = useCallback((fileIdToClose: string) => {
     setAllFiles(currentFiles => {
@@ -174,7 +175,6 @@ export function IdeLayout() {
         if (activeFile?.id === fileIdToClose) {
             if (updatedFiles.length > 0) {
                 const newActiveFile = updatedFiles[0];
-                setActiveFile(newActiveFile);
                 router.replace(`/ide?file=${newActiveFile.id}`);
             } else {
                 router.push('/');
@@ -214,7 +214,7 @@ export function IdeLayout() {
     }, 1500);
   }, [activeFile, toast]);
   
-  if (!activeFile) {
+  if (!activeFile || !isLoaded) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             Loading project...
