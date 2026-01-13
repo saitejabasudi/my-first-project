@@ -7,12 +7,12 @@ import { useToast } from '@/hooks/use-toast';
 import { IdeHeader } from './ide-header';
 import { CodeEditor } from './code-editor';
 import { Button } from '@/components/ui/button';
-import { Play } from 'lucide-react';
+import { Play, X, Trash2 } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
+import { TerminalView } from './terminal-view';
+import { Card } from '../ui/card';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
-const OUTPUT_STORAGE_KEY = 'java-ide-output';
-
 
 function lintJavaCode(code: string): string[] {
     const errors: string[] = [];
@@ -81,6 +81,8 @@ export function IdeLayout() {
   const [allFiles, setAllFiles] = useState<JavaFile[]>([]);
   const [activeFile, setActiveFile] = useState<JavaFile | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
+  const [output, setOutput] = useState<string[]>([]);
+  const [showOutput, setShowOutput] = useState(false);
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -163,52 +165,31 @@ export function IdeLayout() {
     if (!activeFile) return;
 
     setIsCompiling(true);
-    const initialOutput = [`> Compiling ${activeFile.name}...`];
-    try {
-      localStorage.setItem(OUTPUT_STORAGE_KEY, JSON.stringify(initialOutput));
-    } catch (error) {
-      console.error('Failed to save to localStorage', error);
-      toast({
-          variant: 'destructive',
-          title: 'Local Storage Error',
-          description: `Could not save compilation output.`,
-      });
-      setIsCompiling(false);
-      return;
-    }
-    
-    router.push(`/ide/output?file=${activeFile.id}`);
+    setShowOutput(true);
+    setOutput([`> Compiling ${activeFile.name}...`]);
 
     setTimeout(() => {
       const errors = lintJavaCode(activeFile.content);
       let finalOutput: string[];
 
       if (errors.length > 0) {
-        finalOutput = ['Compilation failed with errors:', ...errors];
+        finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation failed with errors:', ...errors];
         toast({
           variant: 'destructive',
           title: 'Compilation Failed',
           description: `Please fix the errors in ${activeFile.name}.`,
         });
       } else {
-        finalOutput = ['Compilation successful.', '> Running...', ...activeFile.output.split('\n'), '\nExecution finished.'];
+        finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation successful.', '> Running...', ...activeFile.output.split('\n'), '\nExecution finished.'];
         toast({
           title: 'Execution Complete',
           description: `${activeFile.name} ran successfully.`,
         });
       }
-      
-      try {
-        localStorage.setItem(OUTPUT_STORAGE_KEY, JSON.stringify(finalOutput));
-        // This will trigger a re-render on the output page if it's already open
-        window.dispatchEvent(new Event('storage'));
-      } catch (error) {
-         console.error('Failed to save to localStorage', error);
-      }
-
+      setOutput(finalOutput);
       setIsCompiling(false);
     }, 1500);
-  }, [activeFile, toast, router]);
+  }, [activeFile, toast]);
   
   if (!activeFile) {
     return (
@@ -231,7 +212,27 @@ export function IdeLayout() {
           />
         </div>
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
+          <div className="flex-1 overflow-auto">
+            <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
+          </div>
+          {showOutput && (
+            <div className="flex-shrink-0 h-1/3 border-t">
+              <Card className="h-full rounded-none">
+                <div className="flex items-center justify-between p-2 border-b h-12">
+                  <h3 className="font-semibold text-sm px-2">Output</h3>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOutput([])}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setShowOutput(false)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <TerminalView output={output} />
+              </Card>
+            </div>
+          )}
           <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-lg" size="icon">
             <Play className="h-8 w-8 text-primary-foreground fill-primary-foreground" />
           </Button>
