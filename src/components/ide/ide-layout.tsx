@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
@@ -8,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { IdeHeader } from './ide-header';
 import { CodeEditor } from './code-editor';
 import { Button } from '@/components/ui/button';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, Menu } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
@@ -88,7 +87,6 @@ export function IdeLayout() {
   const router = useRouter();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  // Load files from localStorage once on initial mount
   useEffect(() => {
     let files: JavaFile[] = [];
     try {
@@ -118,33 +116,25 @@ export function IdeLayout() {
     setAllFiles(files);
   }, [router]);
 
-  // Set active file based on URL or default
   useEffect(() => {
-    if (allFiles.length === 0) {
-        // If allFiles hasn't loaded yet, just wait.
-        if (localStorage.getItem(PROJECTS_STORAGE_KEY) === null) {
-            router.push('/');
-        }
-        return;
-    }
+    if (allFiles.length === 0) return;
 
     const fileIdFromUrl = searchParams.get('file');
-    const fileToLoad = allFiles.find(f => f.id === fileIdFromUrl);
+    const fileToLoad = allFiles.find(f => f.id === fileIdFromUrl) || allFiles[0];
 
     if (fileToLoad) {
-      setActiveFile(fileToLoad);
+        if (fileToLoad.id !== activeFile?.id) {
+            setActiveFile(fileToLoad);
+        }
+        // ensure URL is correct if it was missing or pointed to a non-existent file
+        if (fileToLoad.id !== fileIdFromUrl) {
+            router.replace(`/ide?file=${fileToLoad.id}`);
+        }
     } else {
-      // If no file in URL, or file in URL is not found, default to first file.
-      const firstFile = allFiles[0];
-      if (firstFile) {
-        setActiveFile(firstFile);
-        router.replace(`/ide?file=${firstFile.id}`);
-      } else {
         // This case handles when all files have been deleted.
         router.push('/');
-      }
     }
-  }, [searchParams, allFiles, router]);
+  }, [searchParams, allFiles, router, activeFile]);
 
   const handleCodeChange = useCallback((newCode: string) => {
     if (!activeFile) return;
@@ -235,14 +225,11 @@ export function IdeLayout() {
   const renderMobileSidebar = () => (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
-            <Button variant="ghost">MENU</Button>
+            <Button variant="ghost" size="icon"><Menu /></Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-3/4 bg-card">
             <SheetHeader className="p-4 border-b">
               <SheetTitle>File Explorer</SheetTitle>
-              <SheetDescription className="sr-only">
-                Browse and select files in your project.
-              </SheetDescription>
             </SheetHeader>
             <FileExplorer 
               files={allFiles}
@@ -257,26 +244,36 @@ export function IdeLayout() {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <IdeHeader activeFile={activeFile} onRun={handleCompile} isCompiling={isCompiling} mobileSidebar={renderMobileSidebar()} />
-      <main className="flex flex-1 flex-col overflow-hidden">
+      <main className="flex flex-1 overflow-hidden">
+        <div className="hidden md:block md:w-64 flex-shrink-0 bg-card border-r">
+          <FileExplorer
+            files={allFiles}
+            activeFileId={activeFile.id}
+            onFileSelect={handleFileSelect}
+            onFileClose={handleFileClose}
+          />
+        </div>
         <div className="flex-1 overflow-auto">
           <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
         </div>
       </main>
 
       {showOutput && (
-          <div className="fixed inset-0 z-50 bg-background flex flex-col">
-              <div className="flex items-center justify-between p-2 border-b border-border flex-shrink-0">
-                  <span className="text-sm font-medium px-2">Output</span>
-                  <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOutput([])} disabled={isCompiling}>
-                          <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowOutput(false)}>
-                          <X className="h-4 w-4" />
-                      </Button>
-                  </div>
+          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center">
+              <div className="w-full max-w-4xl h-3/4 flex flex-col bg-card rounded-lg shadow-2xl">
+                <div className="flex items-center justify-between p-2 border-b border-border flex-shrink-0">
+                    <span className="text-sm font-medium px-2">Output</span>
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOutput([])} disabled={isCompiling}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowOutput(false)}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+                <TerminalView output={output} />
               </div>
-              <TerminalView output={output} />
           </div>
         )}
     </div>
