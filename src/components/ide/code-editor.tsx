@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useRef, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
@@ -87,7 +86,8 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
   const renderHighlightedCode = () => {
     const codeToRender = code + '\n'; // Add newline to ensure last line is rendered
-    const stringAndCommentRegex = /("([^"\\]|\\.)*")|(\/\/[^\n]*)|\/\*[\s\S]*?\*\//g;
+    // Corrected Regex: handles strings, single-line comments, and multi-line comments.
+    const stringAndCommentRegex = /("(?:\\[\s\S]|[^"\\])*")|(\/\/[^\n]*)|\/\*[\s\S]*?\*\//g;
     
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
