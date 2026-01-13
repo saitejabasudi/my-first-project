@@ -19,20 +19,16 @@ import { Plus, FileCode, Trash2, Settings, Code } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { Logo } from '@/components/logo';
 import { Progress } from '@/components/ui/progress';
+import { FullLogo } from '@/components/full-logo';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
 function SplashScreen({ progress }: { progress: number }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground font-body">
-      <div className="flex flex-col items-center">
-        <div className="bg-card p-4 rounded-2xl shadow-lg mb-4">
-          <Logo className="h-16 w-16 text-primary" />
-        </div>
-        <h1 className="text-3xl font-bold text-primary mb-2 font-headline">Java Studio Pro</h1>
-        <p className="text-muted-foreground mb-4">Initializing Environment ...</p>
-        <Progress value={progress} className="w-64 h-1" />
-      </div>
+      <FullLogo />
+      <p className="text-muted-foreground mb-4 mt-4">Initializing Environment ...</p>
+      <Progress value={progress} className="w-64 h-1" />
     </div>
   );
 }
