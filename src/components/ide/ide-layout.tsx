@@ -221,11 +221,8 @@ export function IdeLayout() {
               </div>
           </div>
           <div className="flex-1 flex flex-col overflow-auto">
-            <div className="flex-1 overflow-auto">
-              <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
-            </div>
             {showOutput && (
-              <div className="flex-shrink-0 h-1/3 border-t">
+              <div className="flex-shrink-0 h-1/3 border-b">
                   <Card className="h-full flex flex-col rounded-none">
                       <div className="flex items-center justify-between p-2 border-b">
                           <span className="text-sm font-medium">Output</span>
@@ -242,6 +239,9 @@ export function IdeLayout() {
                   </Card>
               </div>
             )}
+            <div className="flex-1 overflow-auto">
+              <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
+            </div>
           </div>
           <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg" size="icon">
             <Play className="h-7 w-7 text-primary-foreground fill-primary-foreground" />
