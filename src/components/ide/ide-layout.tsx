@@ -205,7 +205,7 @@ export function IdeLayout() {
       <div className="hidden sm:block border-b">
           <div className="px-2 py-1">
             <Button variant="ghost" size="sm" className="h-8 gap-2 bg-accent/20">
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" onClick={() => handleFileClose(activeFile.id)}/>
                 <span>{activeFile.name}</span>
             </Button>
           </div>

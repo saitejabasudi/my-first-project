@@ -33,7 +33,7 @@ export function IdeHeader({ activeFile }: IdeHeaderProps) {
           </Button>
         </Link>
         <div>
-          <h1 className="text-lg font-semibold">Hello World</h1>
+          <h1 className="text-lg font-semibold">{activeFile.name}</h1>
           <p className="text-sm text-muted-foreground">Java Studio Pro</p>
         </div>
       </div>
