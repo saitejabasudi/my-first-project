@@ -220,7 +220,7 @@ export function IdeLayout() {
                 </Button>
               </div>
           </div>
-          <div className="flex-1 flex flex-col overflow-auto">
+          <div className="flex flex-1 flex-col overflow-auto">
             {showOutput && (
               <div className="flex-shrink-0 h-1/3 border-b">
                   <Card className="h-full flex flex-col rounded-none">
