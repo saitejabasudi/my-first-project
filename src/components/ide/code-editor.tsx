@@ -17,9 +17,12 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   
   const handleScroll = () => {
     if (lineNumbersRef.current && textareaRef.current && highlighterRef.current) {
-        lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
-        highlighterRef.current.scrollTop = textareaRef.current.scrollTop;
-        highlighterRef.current.scrollLeft = textareaRef.current.scrollLeft;
+        const scrollTop = textareaRef.current.scrollTop;
+        const scrollLeft = textareaRef.current.scrollLeft;
+
+        lineNumbersRef.current.scrollTop = scrollTop;
+        highlighterRef.current.scrollTop = scrollTop;
+        highlighterRef.current.scrollLeft = scrollLeft;
     }
   };
 
@@ -126,14 +129,14 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     return <>{parts}</>;
   };
 
-  const editorStyles = "font-code text-base leading-relaxed p-4 border-0 rounded-none resize-none";
+  const editorStyles = "font-code text-base leading-relaxed p-4 border-0 rounded-none resize-none min-w-full";
 
   return (
     <div className="flex h-full flex-col">
-        <div className="flex flex-1 overflow-hidden bg-background relative">
+        <div className="flex flex-1 overflow-auto bg-background relative">
             <div 
                 ref={lineNumbersRef}
-                className="w-12 text-right pr-2 select-none overflow-y-hidden bg-background z-10 text-muted-foreground font-code text-base leading-relaxed pt-4"
+                className="w-12 text-right pr-2 select-none overflow-y-hidden bg-background z-10 text-muted-foreground font-code text-base leading-relaxed pt-4 flex-shrink-0"
                 aria-hidden="true"
             >
                 {Array.from({ length: lineCount }, (_, i) => (
@@ -147,7 +150,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
                   onChange={(e) => onCodeChange(e.target.value)}
                   onScroll={handleScroll}
                   onKeyDown={handleKeyDown}
-                  className={`absolute inset-0 h-full w-full bg-transparent focus-visible:ring-0 z-20 text-transparent caret-white ${editorStyles}`}
+                  className={`absolute inset-0 h-full w-full bg-transparent focus-visible:ring-0 z-20 text-transparent caret-white whitespace-pre ${editorStyles}`}
                   placeholder="Write your Java code here..."
                   aria-label="Code Editor"
                   spellCheck="false"
