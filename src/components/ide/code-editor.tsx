@@ -29,13 +29,11 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
       const textarea = e.currentTarget;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
-      const currentLine = code.substring(0, start).split('\n').pop() || '';
-      const indentMatch = currentLine.match(/^\s*/);
+      const currentLineText = code.substring(0, start).split('\n').pop() || '';
+      const indentMatch = currentLineText.match(/^\s*/);
       let indent = indentMatch ? indentMatch[0] : '';
       
-      const previousLine = code.substring(0, start).split('\n').slice(-2, -1)[0] || '';
-      
-      if (previousLine.trim().endsWith('{')) {
+      if (code.substring(start - 1, start).trim().endsWith('{')) {
           indent += '    ';
       }
 
