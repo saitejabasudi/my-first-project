@@ -10,6 +10,15 @@ const withPWA = withPWAInit({
   fallbacks: {
     document: '/offline.html',
   },
+  pwa: {
+    dest: 'public',
+    disable: process.env.NODE_ENV === 'development',
+    register: true,
+    skipWaiting: true,
+    fallbacks: {
+      document: '/offline.html',
+    },
+  },
   manifest: {
     name: 'JavaDroid IDE',
     short_name: 'JavaDroid',

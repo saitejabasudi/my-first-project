@@ -76,6 +76,8 @@ export default function ProjectSelectionPage() {
       }
     } catch (error) {
       console.error("Failed to parse projects from localStorage", error);
+      // If parsing fails, fall back to default
+      storedProjects = [];
     }
 
     if (storedProjects.length === 0) {
@@ -123,7 +125,10 @@ export default function ProjectSelectionPage() {
       }
       
       if (updatedProjects.length === 0) {
+         // Reset to default files if all are deleted
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
         router.push('/');
+        return mockFiles;
       }
 
       return updatedProjects;
@@ -204,9 +209,9 @@ export default function ProjectSelectionPage() {
                     </Card>
                 </Link>
                 <Button
-                    variant="ghost"
+                    variant="destructive"
                     size="icon"
-                    className="absolute top-1/2 right-4 -translate-y-1/2 h-10 w-10 text-muted-foreground opacity-50 hover:opacity-100 hover:text-destructive"
+                    className="absolute top-1/2 right-4 -translate-y-1/2 h-10 w-10 text-destructive-foreground opacity-50 group-hover:opacity-100"
                     onClick={() => handleDeleteClick(file.id)}
                 >
                     <Trash2 className="h-5 w-5" />
