@@ -129,7 +129,7 @@ export default function ProjectSelectionPage() {
     }, 500); // 500ms for long press
   };
 
-  const clearPressTimer = (event: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, fileId: string) => {
+  const clearPressTimer = (event: React.MouseEvent | React.TouchEvent, fileId: string) => {
     clearTimeout(longPressTimer.current);
     if (isLongPress.current) {
         event.preventDefault();
@@ -139,7 +139,7 @@ export default function ProjectSelectionPage() {
     }
   };
 
-  const handleCardClick = (event: React.MouseEvent<HTMLAnchorElement>, fileId: string) => {
+  const handleCardClick = (event: React.MouseEvent, fileId: string) => {
     if (isLongPress.current || deletingId === fileId) {
       event.preventDefault();
       return;
@@ -226,7 +226,7 @@ export default function ProjectSelectionPage() {
               onTouchEnd={(e) => clearPressTimer(e, file.id)}
               onMouseLeave={() => clearTimeout(longPressTimer.current)}
               >
-              <Link href={`/ide?file=${file.id}`} onClick={(e) => handleCardClick(e as any, file.id)}>
+              <Link href={`/ide?file=${file.id}`} onClick={(e) => handleCardClick(e, file.id)}>
                 <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
                   <CardContent className="pt-6 flex items-start gap-4">
                     <div className="bg-secondary p-3 rounded-lg">
