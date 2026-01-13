@@ -122,6 +122,10 @@ export default function ProjectSelectionPage() {
         console.error("Failed to save projects to localStorage", error);
       }
       
+      if (updatedProjects.length === 0) {
+        router.push('/');
+      }
+
       return updatedProjects;
     });
   };

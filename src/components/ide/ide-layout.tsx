@@ -44,6 +44,8 @@ function lintJavaCode(code: string): string[] {
             !line.match(/^\s*for\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*if\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*else(\s*if\s*\(.*\))?\s*\{?$/) &&
+            !line.match(/^\s*while\s*\(.*\)\s*\{?$/) &&
+            !line.match(/^\s*switch\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*try(\s*\{?|.*)?$/) &&
             !line.match(/^\s*catch\s*\(.*\)\s*\{?$/) &&
             !line.match(/^\s*finally\s*\{?$/)
@@ -165,13 +167,14 @@ export function IdeLayout() {
   }, [router]);
 
   const handleFileClose = useCallback((fileIdToClose: string) => {
-    let newActiveFileId: string | null = null;
-    
     setAllFiles(currentFiles => {
         const filesAfterClose = currentFiles.filter(f => f.id !== fileIdToClose);
+        
         if (activeFile?.id === fileIdToClose) {
             if (filesAfterClose.length > 0) {
-                newActiveFileId = filesAfterClose[0].id;
+                router.replace(`/ide?file=${filesAfterClose[0].id}`);
+            } else {
+                router.push('/');
             }
         }
         
@@ -182,16 +185,7 @@ export function IdeLayout() {
         }
         return filesAfterClose;
     });
-    
-    setTimeout(() => {
-        if (newActiveFileId) {
-            router.replace(`/ide?file=${newActiveFileId}`);
-        } else if (allFiles.filter(f => f.id !== fileIdToClose).length === 0) {
-             router.push('/');
-        }
-    }, 0);
-
-  }, [activeFile, router, allFiles]);
+  }, [activeFile, router]);
 
   const handleCompile = useCallback(() => {
     if (!activeFile) return;

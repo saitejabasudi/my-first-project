@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
 
@@ -34,6 +35,13 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+   webpack: (config) => {
+    config.externals.push({
+      'sharp': 'commonjs sharp',
+      'onnxruntime-node': 'commonjs onnxruntime-node'
+    })
+    return config
   },
 };
 
