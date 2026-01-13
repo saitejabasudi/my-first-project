@@ -25,7 +25,6 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
       const textarea = e.currentTarget;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
@@ -46,9 +45,11 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
         /^\s*else(\s*if\s*\(.*\))?\s*\{?$/.test(trimmedLine);
         
       if (!isCompleteStatement) {
+        e.preventDefault();
         return;
       }
       
+      e.preventDefault();
       const indentMatch = currentLineText.match(/^\s*/);
       let indent = indentMatch ? indentMatch[0] : '';
       
