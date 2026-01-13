@@ -20,6 +20,7 @@ import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { Logo } from '@/components/logo';
 import { Progress } from '@/components/ui/progress';
 import { FullLogo } from '@/components/full-logo';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
@@ -128,6 +129,7 @@ export default function ProjectSelectionPage() {
           <h1 className="text-xl font-semibold">Java Projects</h1>
         </div>
         <div className="flex items-center">
+            <ThemeToggle />
             <Link href="/settings">
                 <Button variant="ghost" size="icon">
                   <Settings className="h-6 w-6" />
