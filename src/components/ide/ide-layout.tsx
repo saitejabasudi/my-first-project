@@ -105,7 +105,7 @@ export function IdeLayout() {
     }
 
     const fileIdFromUrl = searchParams.get('file');
-    const fileToLoad = files.find(f => f.id === fileIdFromUrl);
+    const fileToLoad = files.find(f => f.id === fileIdFromUrl) || files.find(f => f.name === 'Main.java');
     
     if (fileToLoad) {
       setActiveFile(fileToLoad);
@@ -202,6 +202,14 @@ export function IdeLayout() {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <IdeHeader activeFile={activeFile} />
+      <div className="hidden sm:block border-b">
+          <div className="px-2 py-1">
+            <Button variant="ghost" size="sm" className="h-8 gap-2 bg-accent/20">
+                <X className="h-4 w-4" />
+                <span>{activeFile.name}</span>
+            </Button>
+          </div>
+      </div>
       <main className="flex flex-1 overflow-hidden">
         <div className="w-64 hidden sm:block border-r">
           <FileExplorer 
@@ -233,8 +241,8 @@ export function IdeLayout() {
               </Card>
             </div>
           )}
-          <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-lg" size="icon">
-            <Play className="h-8 w-8 text-primary-foreground fill-primary-foreground" />
+          <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg" size="icon">
+            <Play className="h-7 w-7 text-primary-foreground fill-primary-foreground" />
           </Button>
         </div>
       </main>
