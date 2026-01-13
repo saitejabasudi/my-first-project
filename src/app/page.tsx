@@ -13,16 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, FileCode, Trash2 } from 'lucide-react';
@@ -59,7 +49,6 @@ export default function ProjectSelectionPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout>();
   const isLongPress = useRef(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 
   useEffect(() => {
@@ -147,16 +136,10 @@ export default function ProjectSelectionPage() {
   }
 
   const handleDeleteClick = (event: React.MouseEvent, fileId: string) => {
-    event.stopPropagation(); // prevent card click
-    event.preventDefault(); // prevent link navigation
-    setDeletingId(fileId);
-    setShowDeleteConfirm(true);
-  };
-  
-  const confirmDelete = () => {
-    if (!deletingId) return;
+    event.stopPropagation();
+    event.preventDefault();
     
-    const updatedProjects = projects.filter(p => p.id !== deletingId);
+    const updatedProjects = projects.filter(p => p.id !== fileId);
     setProjects(updatedProjects);
     try {
       localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
@@ -164,10 +147,9 @@ export default function ProjectSelectionPage() {
       console.error("Failed to save projects to localStorage", error);
     }
     
-    setShowDeleteConfirm(false);
     setDeletingId(null);
   };
-
+  
   if (loading) {
     return <SplashScreen progress={progress} />;
   }
@@ -226,7 +208,7 @@ export default function ProjectSelectionPage() {
               onTouchEnd={(e) => clearPressTimer(e, file.id)}
               onMouseLeave={() => clearTimeout(longPressTimer.current)}
               >
-              <Link href={`/ide?file=${file.id}`} onClick={(e) => handleCardClick(e, file.id)}>
+              <Link href={`/ide?file=${file.id}`} onClick={(e: React.MouseEvent) => handleCardClick(e, file.id)}>
                 <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
                   <CardContent className="pt-6 flex items-start gap-4">
                     <div className="bg-secondary p-3 rounded-lg">
@@ -253,21 +235,6 @@ export default function ProjectSelectionPage() {
           ))}
         </div>
       </main>
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the file
-              and remove your data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeletingId(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
