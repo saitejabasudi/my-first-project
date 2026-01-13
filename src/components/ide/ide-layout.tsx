@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { X, Trash2 } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
-import { Card } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { SymbolToolbar } from './symbol-toolbar';
 
@@ -254,5 +253,3 @@ export function IdeLayout() {
     </div>
   );
 }
-
-    
