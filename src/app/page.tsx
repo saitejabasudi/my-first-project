@@ -118,20 +118,18 @@ export default function ProjectSelectionPage() {
     }, 500); // 500ms for long press
   };
 
-  const clearPressTimer = (event: React.MouseEvent | React.TouchEvent, fileId: string) => {
+  const clearPressTimer = (fileId: string) => {
     clearTimeout(longPressTimer.current);
-    if (isLongPress.current) {
-        event.preventDefault();
-        // Keep deletingId set to show the delete button
-    } else if (deletingId) {
-        setDeletingId(null);
+    if (!isLongPress.current && deletingId === fileId) {
+      // If it's not a long press but delete was active, this is a tap, so hide delete
+      setDeletingId(null);
     }
   };
 
   const handleCardClick = (event: React.MouseEvent, fileId: string) => {
     if (isLongPress.current || deletingId === fileId) {
       event.preventDefault();
-      return;
+      // Keep delete button visible, but don't navigate
     }
   }
 
@@ -155,7 +153,7 @@ export default function ProjectSelectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-body" onClick={() => { if(deletingId) setDeletingId(null) }}>
+    <div className="min-h-screen bg-background text-foreground font-body" onClick={() => { if(deletingId && !isLongPress.current) setDeletingId(null) }}>
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-2 rounded-lg">
@@ -203,9 +201,9 @@ export default function ProjectSelectionPage() {
               key={file.id} 
               className="relative"
               onMouseDown={() => startPressTimer(file.id)}
-              onMouseUp={(e) => clearPressTimer(e, file.id)}
+              onMouseUp={() => clearPressTimer(file.id)}
               onTouchStart={() => startPressTimer(file.id)}
-              onTouchEnd={(e) => clearPressTimer(e, file.id)}
+              onTouchEnd={() => clearPressTimer(file.id)}
               onMouseLeave={() => clearTimeout(longPressTimer.current)}
               >
               <Link href={`/ide?file=${file.id}`} onClick={(e: React.MouseEvent) => handleCardClick(e, file.id)}>
