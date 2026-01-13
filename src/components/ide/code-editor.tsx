@@ -25,15 +25,36 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
       const textarea = e.currentTarget;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
-      const currentLineText = code.substring(0, start).split('\n').pop() || '';
+      
+      const textBeforeCursor = code.substring(0, start);
+      const currentLineText = textBeforeCursor.split('\n').pop() || '';
+      const trimmedLine = currentLineText.trim();
+      
+      const isCompleteStatement = 
+        trimmedLine.length === 0 ||
+        trimmedLine.endsWith(';') ||
+        trimmedLine.endsWith('{') ||
+        trimmedLine.endsWith('}') ||
+        trimmedLine.startsWith('//') ||
+        trimmedLine.startsWith('@') ||
+        /^\s*(public|private|protected|static|final|abstract|class|interface|enum|implements|extends|void|int|double|String|boolean|char)/.test(trimmedLine) ||
+        /^\s*(if|for|while|switch|try|catch|finally)\s*\(.*\)\s*\{?$/.test(trimmedLine) ||
+        /^\s*else(\s*if\s*\(.*\))?\s*\{?$/.test(trimmedLine);
+        
+      if (!isCompleteStatement) {
+        e.preventDefault();
+        return;
+      }
+      
+      e.preventDefault();
+      
       const indentMatch = currentLineText.match(/^\s*/);
       let indent = indentMatch ? indentMatch[0] : '';
       
-      if (code.substring(start - 1, start).trim().endsWith('{')) {
+      if (trimmedLine.endsWith('{')) {
           indent += '    ';
       }
 
