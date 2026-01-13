@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, FileCode, Trash2, Settings } from 'lucide-react';
+import { Plus, FileCode, Trash2, Settings, Code } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { Logo } from '@/components/logo';
 import { Progress } from '@/components/ui/progress';
@@ -45,11 +45,6 @@ export default function ProjectSelectionPage() {
   const [newProjectName, setNewProjectName] = useState('');
   const [projects, setProjects] = useState<JavaFile[]>([]);
   const router = useRouter();
-
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const longPressTimer = useRef<NodeJS.Timeout>();
-  const isLongPress = useRef(false);
-
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -109,25 +104,7 @@ export default function ProjectSelectionPage() {
     setNewProjectName('');
     router.push(`/ide?file=${newFile.id}`);
   };
-
-  const startPressTimer = (fileId: string) => {
-    isLongPress.current = false;
-    longPressTimer.current = setTimeout(() => {
-      isLongPress.current = true;
-      setDeletingId(fileId);
-    }, 500); // 500ms for long press
-  };
-
-  const clearPressTimer = () => {
-    clearTimeout(longPressTimer.current);
-  };
   
-  const handleCardClick = (event: React.MouseEvent, fileId: string) => {
-    if (deletingId === fileId) {
-      event.preventDefault();
-    }
-  }
-
   const handleDeleteClick = (event: React.MouseEvent, fileId: string) => {
     event.stopPropagation();
     event.preventDefault();
@@ -139,8 +116,6 @@ export default function ProjectSelectionPage() {
     } catch (error) {
       console.error("Failed to save projects to localStorage", error);
     }
-    
-    setDeletingId(null);
   };
   
   if (loading) {
@@ -148,7 +123,7 @@ export default function ProjectSelectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-body" onClick={() => { if(deletingId) setDeletingId(null) }}>
+    <div className="min-h-screen bg-background text-foreground font-body">
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-2 rounded-lg">
@@ -157,7 +132,7 @@ export default function ProjectSelectionPage() {
           <h1 className="text-xl font-semibold">Java Projects</h1>
         </div>
         <div className="flex items-center">
-            <Link href="/settings" passHref>
+            <Link href="/settings">
                 <Button variant="ghost" size="icon">
                   <Settings className="h-6 w-6" />
                 </Button>
@@ -199,38 +174,30 @@ export default function ProjectSelectionPage() {
       <main className="p-4">
         <div className="grid gap-4">
           {projects.map((file) => (
-            <div 
-              key={file.id} 
-              className="relative"
-              onMouseDown={() => startPressTimer(file.id)}
-              onMouseUp={clearPressTimer}
-              onTouchStart={() => startPressTimer(file.id)}
-              onTouchEnd={clearPressTimer}
-              onMouseLeave={() => clearTimeout(longPressTimer.current)}
-              >
-              <Link href={`/ide?file=${file.id}`} onClick={(e) => handleCardClick(e, file.id)}>
-                <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
-                  <CardContent className="pt-6 flex items-start gap-4">
-                    <div className="bg-secondary p-3 rounded-lg">
-                      <FileCode className="h-6 w-6 text-secondary-foreground" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{file.name}</h3>
-                      <p className="text-sm text-muted-foreground">Tap to edit</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-              {deletingId === file.id && (
+              <div key={file.id} className="relative group">
+                <Link href={`/ide?file=${file.id}`}>
+                    <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
+                    <CardContent className="pt-6 flex items-center justify-between">
+                        <div className="flex items-start gap-4">
+                            <div className="bg-secondary p-3 rounded-lg">
+                                <FileCode className="h-6 w-6 text-secondary-foreground" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold">{file.name}</h3>
+                                <p className="text-sm text-muted-foreground">Tap to edit</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                    </Card>
+                </Link>
                 <Button
-                    variant="destructive"
+                    variant="ghost"
                     size="icon"
-                    className="absolute top-1/2 right-4 -translate-y-1/2 h-10 w-10 z-10"
+                    className="absolute top-1/2 right-4 -translate-y-1/2 h-10 w-10 text-muted-foreground opacity-50 hover:opacity-100 hover:text-destructive"
                     onClick={(e) => handleDeleteClick(e, file.id)}
                 >
                     <Trash2 className="h-5 w-5" />
                 </Button>
-               )}
             </div>
           ))}
         </div>

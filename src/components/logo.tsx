@@ -14,9 +14,7 @@ export function Logo({ className }: { className?: string }) {
       strokeLinejoin="round"
       className={cn('h-6 w-6', className)}
     >
-        <path d="M14.5 4l-5 16" />
-        <path d="M8 4H4l6 8-6 8h4l6-8-6-8z" />
-        <path d="M16 4h4l-6 8 6 8h-4l-6-8 6-8z" />
+      <path d="M10 18l6-12-6-12" />
     </svg>
   );
 }
