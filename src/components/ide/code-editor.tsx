@@ -101,12 +101,14 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     return parts;
   };
 
+  const editorStyles = "font-code text-base leading-relaxed p-4 border-0 rounded-none resize-none";
+
   return (
     <div className="flex h-full flex-col">
         <div className="flex flex-1 overflow-hidden bg-background relative">
             <div 
                 ref={lineNumbersRef}
-                className="w-12 text-right pr-2 pt-4 font-code text-base text-muted-foreground select-none overflow-y-hidden bg-background z-10 leading-relaxed"
+                className="w-12 text-right pr-2 select-none overflow-y-hidden bg-background z-10 text-muted-foreground font-code text-base leading-relaxed pt-4"
                 aria-hidden="true"
             >
                 {Array.from({ length: lineCount }, (_, i) => (
@@ -119,7 +121,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
                   value={code}
                   onChange={(e) => onCodeChange(e.target.value)}
                   onScroll={handleScroll}
-                  className="absolute inset-0 h-full w-full resize-none border-0 rounded-none bg-transparent p-4 pl-4 font-code text-base leading-relaxed focus-visible:ring-0 z-20 text-transparent caret-white"
+                  className={`absolute inset-0 h-full w-full bg-transparent focus-visible:ring-0 z-20 text-transparent caret-white ${editorStyles}`}
                   placeholder="Write your Java code here..."
                   aria-label="Code Editor"
                   spellCheck="false"
@@ -127,7 +129,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
                 <pre 
                     ref={highlighterRef}
                     aria-hidden="true"
-                    className="absolute inset-0 h-full w-full resize-none border-0 rounded-none bg-transparent p-4 pl-4 font-code text-base leading-relaxed overflow-auto z-10 pointer-events-none whitespace-pre-wrap"
+                    className={`absolute inset-0 h-full w-full bg-transparent overflow-auto z-10 pointer-events-none whitespace-pre-wrap ${editorStyles}`}
                 >
                     {renderHighlightedCode()}
                 </pre>
