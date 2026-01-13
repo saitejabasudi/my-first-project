@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, FileCode, Trash2, Settings, Code } from 'lucide-react';
+import { Plus, FileCode, Trash2, Settings } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { Logo } from '@/components/logo';
 import { Progress } from '@/components/ui/progress';
@@ -54,11 +54,14 @@ export default function ProjectSelectionPage() {
       });
     }, 20);
 
-    setTimeout(() => {
+    const loadingTimeout = setTimeout(() => {
       setLoading(false);
     }, 3000);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer)
+      clearTimeout(loadingTimeout);
+    };
   }, []);
 
   useEffect(() => {
@@ -103,13 +106,15 @@ export default function ProjectSelectionPage() {
   };
   
   const handleDeleteClick = (fileId: string) => {
-    const updatedProjects = projects.filter(p => p.id !== fileId);
-    setProjects(updatedProjects);
-    try {
-      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
-    } catch (error) {
-      console.error("Failed to save projects to localStorage", error);
-    }
+    setProjects(currentProjects => {
+      const updatedProjects = currentProjects.filter(p => p.id !== fileId);
+      try {
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
+      } catch (error) {
+        console.error("Failed to save projects to localStorage", error);
+      }
+      return updatedProjects;
+    });
   };
   
   if (loading) {
@@ -189,7 +194,11 @@ export default function ProjectSelectionPage() {
                     variant="ghost"
                     size="icon"
                     className="absolute top-1/2 right-4 -translate-y-1/2 h-10 w-10 text-muted-foreground opacity-50 hover:opacity-100 hover:text-destructive"
-                    onClick={() => handleDeleteClick(file.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDeleteClick(file.id);
+                    }}
                 >
                     <Trash2 className="h-5 w-5" />
                 </Button>

@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 
 type CodeEditorProps = {
@@ -23,47 +23,50 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     }
   };
 
-  const highlightSegment = (segment: string, key: string) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const currentLine = code.substring(0, start).split('\n').pop() || '';
+      const indentMatch = currentLine.match(/^\s*/);
+      let indent = indentMatch ? indentMatch[0] : '';
+      
+      const previousLine = code.substring(0, start).split('\n').slice(-2, -1)[0] || '';
+      
+      if (previousLine.trim().endsWith('{')) {
+          indent += '    ';
+      }
+
+      const newCode = `${code.substring(0, start)}\n${indent}${code.substring(end)}`;
+      onCodeChange(newCode);
+
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 1 + indent.length;
+      }, 0);
+    }
+  };
+
+  const highlightSegment = (segment: string) => {
     const keywordRegex = /\b(public|class|static|void|main|String|System|out|println|if|else|for|while|switch|case|break|continue|return|int|double|boolean|char|new)\b/g;
-    let lastIndex = 0;
-    const parts: React.ReactNode[] = [];
-    let match;
-
-    while((match = keywordRegex.exec(segment)) !== null) {
-      const nonKeywordPart = segment.substring(lastIndex, match.index);
-       if (nonKeywordPart) {
-        parts.push(nonKeywordPart);
+    return segment.split(keywordRegex).map((part, index) => {
+      if (index % 2 === 1) { // It's a keyword
+        return <span key={index} className="text-syntax-keyword">{part}</span>;
       }
-
-      const keywordPart = match[0];
-      parts.push(<span key={`${key}-keyword-${match.index}`} className="text-syntax-keyword">{keywordPart}</span>);
-      lastIndex = match.index + keywordPart.length;
-    }
-
-    const remainingPart = segment.substring(lastIndex);
-    if(remainingPart) {
-        parts.push(remainingPart);
-    }
-
-    const finalParts = parts.map((part, index) => {
-      if (typeof part === 'string') {
-        return part.split(/([{}])/g).map((subPart, subIndex) => {
-          if (subPart === '{' || subPart === '}') {
-            return <span key={`${key}-brace-${index}-${subIndex}`} className="text-syntax-highlight">{subPart}</span>;
-          }
-          return subPart;
-        });
-      }
-      return part;
+      // Not a keyword, check for braces
+      return part.split(/([{}()])/g).map((subPart, subIndex) => {
+        if (subPart.match(/[{}()]/)) {
+          return <span key={`${index}-${subIndex}`} className="text-syntax-highlight">{subPart}</span>;
+        }
+        return subPart;
+      });
     });
-
-
-    return <>{finalParts}</>;
   };
 
   const renderHighlightedCode = () => {
-    const codeToRender = code + '\n';
-    const stringRegex = /"([^"\\]|\\.)*"/g;
+    const codeToRender = code + '\n'; // Add newline to ensure last line is rendered
+    const stringRegex = /("([^"\\]|\\.)*")/g;
     
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
@@ -72,7 +75,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     while((match = stringRegex.exec(codeToRender)) !== null) {
       const nonStringPart = codeToRender.substring(lastIndex, match.index);
       if (nonStringPart) {
-        parts.push(highlightSegment(nonStringPart, `non-string-${lastIndex}`));
+        parts.push(highlightSegment(nonStringPart));
       }
 
       const stringPart = match[0];
@@ -82,7 +85,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     
     const remainingPart = codeToRender.substring(lastIndex);
     if(remainingPart) {
-       parts.push(highlightSegment(remainingPart, `remaining-${lastIndex}`));
+       parts.push(highlightSegment(remainingPart));
     }
     
     return <>{parts}</>;
@@ -108,6 +111,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
                   value={code}
                   onChange={(e) => onCodeChange(e.target.value)}
                   onScroll={handleScroll}
+                  onKeyDown={handleKeyDown}
                   className={`absolute inset-0 h-full w-full bg-transparent focus-visible:ring-0 z-20 text-transparent caret-white ${editorStyles}`}
                   placeholder="Write your Java code here..."
                   aria-label="Code Editor"

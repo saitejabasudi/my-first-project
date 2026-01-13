@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { X, Trash2, Menu } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
+import { AccessoryKeys } from './accessory-keys';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
@@ -213,6 +214,13 @@ export function IdeLayout() {
       setIsCompiling(false);
     }, 1500);
   }, [activeFile, toast]);
+
+  const handleAccessoryKeyPress = useCallback((key: string) => {
+    if (!activeFile) return;
+    const char = key === "Tab" ? "    " : key;
+    const newCode = activeFile.content + char;
+    handleCodeChange(newCode);
+  }, [activeFile, handleCodeChange]);
   
   if (!activeFile || !isLoaded) {
     return (
@@ -253,8 +261,11 @@ export function IdeLayout() {
             onFileClose={handleFileClose}
           />
         </div>
-        <div className="flex-1 overflow-auto">
-          <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
+        <div className="flex flex-1 flex-col overflow-auto">
+          <div className="flex-1 overflow-auto">
+            <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
+          </div>
+          <AccessoryKeys onKeyPress={handleAccessoryKeyPress} />
         </div>
       </main>
 
