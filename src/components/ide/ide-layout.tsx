@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { X, Trash2 } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
