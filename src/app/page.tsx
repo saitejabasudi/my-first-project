@@ -67,18 +67,25 @@ export default function ProjectSelectionPage() {
   useEffect(() => {
     if (loading) return;
 
+    let storedProjects: JavaFile[] = [];
     try {
       const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
       if (storedProjectsJson) {
-        setProjects(JSON.parse(storedProjectsJson));
-      } else {
-        setProjects(mockFiles);
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+        storedProjects = JSON.parse(storedProjectsJson);
       }
     } catch (error) {
-      console.error("Failed to load projects from localStorage", error);
-      setProjects(mockFiles);
+      console.error("Failed to parse projects from localStorage", error);
     }
+
+    if (storedProjects.length === 0) {
+        storedProjects = mockFiles;
+        try {
+            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+        } catch (error) {
+            console.error("Failed to save default projects to localStorage", error);
+        }
+    }
+    setProjects(storedProjects);
   }, [loading]);
 
   const handleCreateProject = () => {
