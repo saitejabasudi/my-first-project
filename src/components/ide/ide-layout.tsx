@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { IdeHeader } from './ide-header';
 import { CodeEditor } from './code-editor';
 import { Button } from '@/components/ui/button';
-import { Play, X, Trash2, Menu } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
 import { Card } from '@/components/ui/card';
