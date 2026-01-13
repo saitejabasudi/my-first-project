@@ -33,33 +33,37 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
       const currentLineText = textBeforeCursor.split('\n').pop() || '';
       const trimmedLine = currentLineText.trim();
       
+      // More robust check for complete statements in Java
       const isCompleteStatement = 
-        trimmedLine.length === 0 ||
-        trimmedLine.endsWith(';') ||
-        trimmedLine.endsWith('{') ||
-        trimmedLine.endsWith('}') ||
-        trimmedLine.startsWith('//') ||
-        trimmedLine.startsWith('@') ||
-        /^\s*(public|private|protected|static|final|abstract|class|interface|enum|implements|extends|void|int|double|String|boolean|char)/.test(trimmedLine) ||
-        /^\s*(if|for|while|switch|try|catch|finally)\s*\(.*\)\s*\{?$/.test(trimmedLine) ||
-        /^\s*else(\s*if\s*\(.*\))?\s*\{?$/.test(trimmedLine);
+        trimmedLine.length === 0 || // Empty line
+        trimmedLine.endsWith(';') || // Ends with semicolon
+        trimmedLine.endsWith('{') || // Ends with opening brace
+        trimmedLine.endsWith('}') || // Ends with closing brace
+        trimmedLine.startsWith('//') || // Is a comment
+        trimmedLine.startsWith('@') || // Is an annotation
+        /^\s*(public|private|protected|static|final|abstract|class|interface|enum|implements|extends)/.test(trimmedLine) || // Is a class/interface/enum declaration
+        /^\s*(if|for|while|switch|try|catch|finally)\s*\(.*\)\s*\{?$/.test(trimmedLine) || // Is a control flow statement
+        /^\s*else(\s*if\s*\(.*\))?\s*\{?$/.test(trimmedLine); // Is an else or else if statement
         
       if (!isCompleteStatement) {
+        // If the statement is not complete, prevent the default Enter action.
         e.preventDefault();
         return;
       }
       
+      // If the statement is complete, proceed with auto-indentation.
       e.preventDefault();
       const indentMatch = currentLineText.match(/^\s*/);
       let indent = indentMatch ? indentMatch[0] : '';
       
       if (trimmedLine.endsWith('{')) {
-          indent += '    ';
+          indent += '    '; // Add extra indent if line ends with an opening brace
       }
 
       const newCode = `${code.substring(0, start)}\n${indent}${code.substring(end)}`;
       onCodeChange(newCode);
 
+      // Set cursor position after the new line and indentation
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 1 + indent.length;
       }, 0);
