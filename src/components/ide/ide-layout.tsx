@@ -137,7 +137,7 @@ export function IdeLayout() {
     if (fileToLoad) {
         setActiveFile(fileToLoad);
         if (fileToLoad.id !== fileIdFromUrl) {
-            router.replace(`/ide?file=${fileToLoad.id}`);
+            router.replace(`/ide?file=${fileToLoad.id}`, { scroll: false });
         }
     } else {
         router.push('/');
@@ -167,14 +167,17 @@ export function IdeLayout() {
   }, [router]);
 
   const handleFileClose = useCallback((fileIdToClose: string) => {
+    let newActiveFileId: string | null = null;
+    const currentActiveIndex = allFiles.findIndex(f => f.id === activeFile?.id);
+
     setAllFiles(currentFiles => {
         const filesAfterClose = currentFiles.filter(f => f.id !== fileIdToClose);
         
         if (activeFile?.id === fileIdToClose) {
             if (filesAfterClose.length > 0) {
-                router.replace(`/ide?file=${filesAfterClose[0].id}`);
-            } else {
-                router.push('/');
+                // Try to select the next file, or the previous one if it was the last
+                const newIndex = Math.min(currentActiveIndex, filesAfterClose.length - 1);
+                newActiveFileId = filesAfterClose[newIndex].id;
             }
         }
         
@@ -183,9 +186,16 @@ export function IdeLayout() {
         } catch(e) {
             console.error("Failed to save updated projects to localStorage", e)
         }
+
+        if (newActiveFileId) {
+             router.replace(`/ide?file=${newActiveFileId}`);
+        } else if (filesAfterClose.length === 0) {
+            router.push('/');
+        }
+        
         return filesAfterClose;
     });
-  }, [activeFile, router]);
+  }, [activeFile, allFiles, router]);
 
   const handleCompile = useCallback(() => {
     if (!activeFile) return;
@@ -249,7 +259,7 @@ export function IdeLayout() {
     <div className="flex h-screen flex-col bg-background text-foreground">
       <IdeHeader activeFile={activeFile} onRun={handleCompile} isCompiling={isCompiling} mobileSidebar={renderMobileSidebar()} />
       <main className="flex flex-1 overflow-hidden">
-        <div className="hidden md:block md:w-48 flex-shrink-0 bg-card border-r">
+        <div className="hidden md:block md:w-64 flex-shrink-0 bg-card border-r">
           <FileExplorer
             files={allFiles}
             activeFileId={activeFile.id}

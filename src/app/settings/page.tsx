@@ -31,9 +31,9 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-body">
-      <header className="flex items-center justify-between p-4 border-b">
+      <header className="flex items-center p-4 border-b">
         <div className="flex items-center gap-2">
-            <Link href="/">
+            <Link href="/" passHref>
               <Button variant="ghost" size="icon" aria-label="Go back to projects">
                 <ChevronLeft className="h-6 w-6" />
               </Button>
@@ -43,9 +43,9 @@ export default function SettingsPage() {
       </header>
       <main className="p-4">
         <div className="divide-y divide-border">
-            <SettingsItem title="Font" value="RobotoMono" />
-            <SettingsItem title="Font size" value="Small" />
-            <SettingsItem title="Open the file charset" value="UTF-8" />
+            <SettingsItem title="Font" value="Source Code Pro" />
+            <SettingsItem title="Font size" value="Default" />
+            <SettingsItem title="File Encoding" value="UTF-8" />
             <Dialog>
               <DialogTrigger asChild>
                 <div className="py-4 cursor-pointer">
@@ -71,8 +71,8 @@ export default function SettingsPage() {
                   <Info className="h-5 w-5 text-muted-foreground" />
               </div>
             </Link>
-            <SettingsItem title="Donate" value="Buy a cup of coffee for developer.☕" />
-            <SettingsItem title="Current Version" value="3.3.8" />
+            <SettingsItem title="Donate" value="Buy a cup of coffee for the developer.☕" />
+            <SettingsItem title="Current Version" value="1.0.0" />
         </div>
 
         <SectionTitle>

@@ -1,3 +1,4 @@
+
 "use client";
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,7 +22,7 @@ export function FileExplorer({ files, activeFileId, onFileSelect, onFileClose }:
             <span>Files</span>
         </h2>
         <Link href="/" passHref>
-             <Button variant="ghost" size="icon">
+             <Button variant="ghost" size="icon" aria-label="Go to project selection">
               <Plus className="h-6 w-6" />
             </Button>
         </Link>
@@ -32,11 +33,11 @@ export function FileExplorer({ files, activeFileId, onFileSelect, onFileClose }:
             <div key={file.id} className="relative group">
               <Button
                 variant={file.id === activeFileId ? 'secondary' : 'ghost'}
-                className="w-full justify-start gap-2"
+                className="w-full justify-start gap-2 text-left h-auto py-2"
                 onClick={() => onFileSelect(file.id)}
               >
-                <FileCode className="h-4 w-4 text-muted-foreground" />
-                <span className="truncate font-code">{file.name}</span>
+                <FileCode className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="truncate font-code flex-grow">{file.name}</span>
               </Button>
               <Button 
                 variant="ghost" 
@@ -46,6 +47,7 @@ export function FileExplorer({ files, activeFileId, onFileSelect, onFileClose }:
                     e.stopPropagation();
                     onFileClose(file.id);
                 }}
+                aria-label={`Close file ${file.name}`}
               >
                   <X className="h-4 w-4" />
               </Button>

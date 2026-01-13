@@ -72,12 +72,13 @@ export default function ProjectSelectionPage() {
     try {
       const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
       if (storedProjectsJson) {
-        storedProjects = JSON.parse(storedProjectsJson);
+        const parsed = JSON.parse(storedProjectsJson);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            storedProjects = parsed;
+        }
       }
     } catch (error) {
       console.error("Failed to parse projects from localStorage", error);
-      // If parsing fails, fall back to default
-      storedProjects = [];
     }
 
     if (storedProjects.length === 0) {
@@ -126,9 +127,10 @@ export default function ProjectSelectionPage() {
       
       if (updatedProjects.length === 0) {
          // Reset to default files if all are deleted
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
-        router.push('/');
-        return mockFiles;
+        const defaultFiles = mockFiles;
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(defaultFiles));
+        router.refresh(); // Use router.refresh to re-trigger useEffects
+        return defaultFiles;
       }
 
       return updatedProjects;
@@ -179,6 +181,7 @@ export default function ProjectSelectionPage() {
                       onChange={(e) => setNewProjectName(e.target.value)}
                       className="col-span-3"
                       placeholder="e.g., MyAwesomeApp"
+                      onKeyDown={(e) => e.key === 'Enter' && handleCreateProject()}
                     />
                   </div>
                 </div>
@@ -212,7 +215,11 @@ export default function ProjectSelectionPage() {
                     variant="destructive"
                     size="icon"
                     className="absolute top-1/2 right-4 -translate-y-1/2 h-10 w-10 text-destructive-foreground opacity-50 group-hover:opacity-100"
-                    onClick={() => handleDeleteClick(file.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      handleDeleteClick(file.id);
+                    }}
                 >
                     <Trash2 className="h-5 w-5" />
                 </Button>

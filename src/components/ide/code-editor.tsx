@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 
 type CodeEditorProps = {
@@ -14,17 +14,20 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   const highlighterRef = useRef<HTMLDivElement>(null);
 
   const lineCount = code.split('\n').length || 1;
-  
-  const handleScroll = () => {
-    if (lineNumbersRef.current && textareaRef.current && highlighterRef.current) {
-        const scrollTop = textareaRef.current.scrollTop;
-        const scrollLeft = textareaRef.current.scrollLeft;
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (lineNumbersRef.current && textareaRef.current && highlighterRef.current) {
+        const { scrollTop, scrollLeft } = textareaRef.current;
         lineNumbersRef.current.scrollTop = scrollTop;
         highlighterRef.current.scrollTop = scrollTop;
         highlighterRef.current.scrollLeft = scrollLeft;
-    }
-  };
+      }
+    };
+    const textarea = textareaRef.current;
+    textarea?.addEventListener('scroll', handleScroll);
+    return () => textarea?.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab') {
@@ -41,34 +44,18 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     }
 
     if (e.key === 'Enter') {
+      e.preventDefault();
       const textarea = e.currentTarget;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       
       const textBeforeCursor = code.substring(0, start);
       const currentLineText = textBeforeCursor.split('\n').pop() || '';
-      const trimmedLine = currentLineText.trim();
       
-      const isCompleteStatement = 
-        trimmedLine.length === 0 ||
-        trimmedLine.endsWith(';') ||
-        trimmedLine.endsWith('{') ||
-        trimmedLine.endsWith('}') ||
-        trimmedLine.startsWith('//') || 
-        trimmedLine.startsWith('@') ||
-        /^\s*(public|private|protected|static|final|abstract|class|interface|enum|implements|extends)/.test(trimmedLine) ||
-        /^\s*(if|for|while|switch|try|catch|finally)\s*\(.*\)\s*\{?$/.test(trimmedLine) ||
-        /^\s*else(\s*if\s*\(.*\))?\s*\{?$/.test(trimmedLine);
-        
-      if (!isCompleteStatement && textBeforeCursor !== code) {
-        // Simple check to allow enter on last line always
-      }
-      
-      e.preventDefault();
       const indentMatch = currentLineText.match(/^\s*/);
       let indent = indentMatch ? indentMatch[0] : '';
       
-      if (trimmedLine.endsWith('{')) {
+      if (currentLineText.trim().endsWith('{')) {
           indent += '    ';
       }
 
@@ -77,6 +64,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 1 + indent.length;
+        textarea.scrollTop = textarea.scrollHeight;
       }, 0);
     }
   };
@@ -143,14 +131,13 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
                     <div key={i}>{i + 1}</div>
                 ))}
             </div>
-            <div className="relative w-full h-full overflow-x-auto">
+            <div className="relative w-full h-full overflow-hidden">
                 <Textarea
                   ref={textareaRef}
                   value={code}
                   onChange={(e) => onCodeChange(e.target.value)}
-                  onScroll={handleScroll}
                   onKeyDown={handleKeyDown}
-                  className={`absolute inset-0 h-full w-full bg-transparent focus-visible:ring-0 z-20 text-transparent caret-white whitespace-pre ${editorStyles}`}
+                  className={`absolute inset-0 h-full w-full bg-transparent focus-visible:ring-0 z-20 text-transparent caret-foreground whitespace-pre overflow-auto ${editorStyles}`}
                   placeholder="Write your Java code here..."
                   aria-label="Code Editor"
                   spellCheck="false"
