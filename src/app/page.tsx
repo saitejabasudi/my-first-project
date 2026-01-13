@@ -226,20 +226,18 @@ export default function ProjectSelectionPage() {
               onTouchEnd={(e) => clearPressTimer(e, file.id)}
               onMouseLeave={() => clearTimeout(longPressTimer.current)}
               >
-              <Link href={`/ide?file=${file.id}`} passHref legacyBehavior>
-                <a onClick={(e) => handleCardClick(e, file.id)}>
-                    <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
-                    <CardContent className="pt-6 flex items-start gap-4">
-                        <div className="bg-secondary p-3 rounded-lg">
-                            <FileCode className="h-6 w-6 text-secondary-foreground" />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold">{file.name}</h3>
-                            <p className="text-sm text-muted-foreground">Tap to edit</p>
-                        </div>
-                    </CardContent>
-                    </Card>
-                </a>
+              <Link href={`/ide?file=${file.id}`} onClick={(e) => handleCardClick(e as any, file.id)}>
+                <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
+                  <CardContent className="pt-6 flex items-start gap-4">
+                    <div className="bg-secondary p-3 rounded-lg">
+                      <FileCode className="h-6 w-6 text-secondary-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">{file.name}</h3>
+                      <p className="text-sm text-muted-foreground">Tap to edit</p>
+                    </div>
+                  </CardContent>
+                </Card>
               </Link>
               {deletingId === file.id && (
                 <Button
