@@ -2,6 +2,8 @@
 import { Button } from '@/components/ui/button';
 import type { JavaFile } from '@/lib/mock-files';
 import React from 'react';
+import Link from 'next/link';
+import { ChevronLeft } from 'lucide-react';
 
 type IdeHeaderProps = {
   activeFile: JavaFile;
@@ -14,6 +16,11 @@ export function IdeHeader({ activeFile, onRun, isCompiling, mobileSidebar }: Ide
   return (
     <header className="flex h-16 flex-shrink-0 items-center justify-between bg-card px-4">
       <div className="flex items-center gap-2">
+        <Link href="/" passHref>
+          <Button variant="ghost" size="icon" aria-label="Go back to projects">
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+        </Link>
         <div>
           <h1 className="text-lg font-semibold">Java Studio Pro</h1>
           <p className="text-xs text-muted-foreground">Nothing changed</p>
