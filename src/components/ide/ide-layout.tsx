@@ -12,7 +12,6 @@ import { X, Trash2 } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
-import { SymbolToolbar } from './symbol-toolbar';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
@@ -135,10 +134,6 @@ export function IdeLayout() {
     }
   }, [activeFile, allFiles]);
 
-  const handleInsertText = (text: string) => {
-    handleCodeChange(activeFile?.content + text);
-  };
-
   const handleFileSelect = useCallback((fileId: string) => {
     const fileToSelect = allFiles.find(f => f.id === fileId);
     if(fileToSelect) {
@@ -214,9 +209,9 @@ export function IdeLayout() {
             <Button variant="ghost">MENU</Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-3/4 bg-card">
-            <SheetHeader className="sr-only">
+            <SheetHeader className="p-4 border-b">
               <SheetTitle>File Explorer</SheetTitle>
-              <SheetDescription>
+              <SheetDescription className="sr-only">
                 Browse and select files in your project.
               </SheetDescription>
             </SheetHeader>
@@ -237,7 +232,6 @@ export function IdeLayout() {
         <div className="flex-1 overflow-auto">
           <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
         </div>
-        <SymbolToolbar onSymbolClick={handleInsertText} />
       </main>
 
       {showOutput && (
