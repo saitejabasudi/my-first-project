@@ -3,8 +3,16 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
-const SettingsItem = ({ title, value }: { title: string, value: string }) => (
+const SettingsItem = ({ title, value }: { title: string, value: string | React.ReactNode }) => (
     <div className="py-4">
         <p className="text-base text-foreground">{title}</p>
         <p className="text-sm text-muted-foreground">{value}</p>
@@ -12,11 +20,13 @@ const SettingsItem = ({ title, value }: { title: string, value: string }) => (
 );
 
 export default function SettingsPage() {
+  const privacyPolicy = "Java Studio Pro is an offline Java coding application. It does not collect, store, or share any personal user data. All code and files remain on the user’s device. No internet access, tracking, or third-party services are used.";
+
   return (
     <div className="min-h-screen bg-background text-foreground font-body">
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
-            <Link href="/" passHref>
+            <Link href="/">
               <Button variant="ghost" size="icon" aria-label="Go back to projects">
                 <ChevronLeft className="h-6 w-6" />
               </Button>
@@ -29,6 +39,22 @@ export default function SettingsPage() {
             <SettingsItem title="Font" value="RobotoMono" />
             <SettingsItem title="Font size" value="Small" />
             <SettingsItem title="Open the file charset" value="UTF-8" />
+            <Dialog>
+              <DialogTrigger asChild>
+                <div className="py-4 cursor-pointer">
+                  <p className="text-base text-foreground">Privacy Policy</p>
+                  <p className="text-sm text-muted-foreground">View our privacy policy</p>
+                </div>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Privacy Policy</DialogTitle>
+                  <DialogDescription className="pt-4">
+                    {privacyPolicy}
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
             <SettingsItem title="Donate" value="Buy a cup of coffee for developer.☕" />
             <SettingsItem title="Current Version" value="3.3.8" />
         </div>
