@@ -33,7 +33,7 @@ export function Logo({ className }: { className?: string }) {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className={cn('h-6 w-6 dark:hidden', className)}
+        className={cn('h-6 w-6 block dark:hidden', className)}
       >
         <path d="m16 18 6-6-6-6" />
         <path d="m8 6-6 6 6 6" />
