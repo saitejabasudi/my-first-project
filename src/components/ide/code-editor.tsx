@@ -47,6 +47,8 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
         
       if (!isCompleteStatement) {
         // If the statement is not complete, prevent the default Enter action.
+        // This is a placeholder for a smarter system. In a real IDE,
+        // you might show a tooltip or error. For now, we just block.
         e.preventDefault();
         return;
       }
