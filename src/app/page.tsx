@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Moon, Sun, Share2, MoreVertical, History, Plus } from 'lucide-react';
+import { Plus, FileCode } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { Logo } from '@/components/logo';
 import { Progress } from '@/components/ui/progress';
@@ -33,7 +33,6 @@ function SplashScreen({ progress }: { progress: number }) {
 export default function ProjectSelectionPage() {
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const [open, setOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [projects, setProjects] = useState<JavaFile[]>([]);
@@ -72,17 +71,7 @@ export default function ProjectSelectionPage() {
       console.error("Failed to load projects from localStorage", error);
       setProjects(mockFiles);
     }
-    
-    // Set initial theme
-    const isDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isDark);
   }, [loading]);
-
-  const toggleTheme = () => {
-    const newIsDarkMode = !isDarkMode;
-    setIsDarkMode(newIsDarkMode);
-    document.documentElement.classList.toggle('dark', newIsDarkMode);
-  };
 
   const handleCreateProject = () => {
     if (!newProjectName.trim()) return;
@@ -119,81 +108,53 @@ export default function ProjectSelectionPage() {
           <div className="bg-primary/10 p-2 rounded-lg">
             <Logo className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-xl font-semibold">Java Studio Pro</h1>
+          <h1 className="text-xl font-semibold">Java Projects</h1>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Share2 className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <MoreVertical className="h-5 w-5" />
-          </Button>
-        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Plus className="h-6 w-6" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create New Project</DialogTitle>
+              <DialogDescription>
+                Enter a name for your new Java project. This will be used as the class name.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Project Name
+                </Label>
+                <Input
+                  id="name"
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
+                  className="col-span-3"
+                  placeholder="e.g., MyAwesomeApp"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" onClick={handleCreateProject}>Create</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </header>
-      <main className="p-4 sm:p-6">
-        <Card className="mb-8 shadow-lg bg-card">
-          <CardContent className="pt-6">
-            <h1 className="text-3xl font-bold mb-2 font-headline">
-              Code Java on the go, <span className="text-primary">Professionally.</span>
-            </h1>
-            <p className="text-muted-foreground mb-6">
-              A full-featured IDE environment in your pocket. Write, compile, and run Java code instantly.
-            </p>
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg">
-                  <Plus className="mr-2 h-5 w-5" />
-                  New Project
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Create New Project</DialogTitle>
-                  <DialogDescription>
-                    Enter a name for your new Java project. This will be used as the class name.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Project Name
-                    </Label>
-                    <Input
-                      id="name"
-                      value={newProjectName}
-                      onChange={(e) => setNewProjectName(e.target.value)}
-                      className="col-span-3"
-                      placeholder="e.g., MyAwesomeApp"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="button" onClick={handleCreateProject}>Create</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
-        
-        <div className="flex items-center gap-2 mb-4">
-          <History className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-xl font-semibold">Recent Projects</h2>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <main className="p-4">
+        <div className="grid gap-4">
           {projects.map((file) => (
             <Link href={`/ide?file=${file.id}`} key={file.id} passHref>
                 <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
                   <CardContent className="pt-6 flex items-start gap-4">
                       <div className="bg-secondary p-3 rounded-lg">
-                          <Logo className="h-6 w-6 text-secondary-foreground" />
+                          <FileCode className="h-6 w-6 text-secondary-foreground" />
                       </div>
                       <div>
-                          <h3 className="font-semibold">{file.name.replace('.java', '')}</h3>
-                          <p className="text-sm text-muted-foreground">Last edited: 10/01/2026</p>
+                          <h3 className="font-semibold">{file.name}</h3>
+                          <p className="text-sm text-muted-foreground">Tap to edit</p>
                       </div>
                   </CardContent>
                 </Card>

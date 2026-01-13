@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { JavaFile } from '@/lib/mock-files';
-import { FileCode, Folder, X } from 'lucide-react';
+import { FileCode, Folder, Plus, X } from 'lucide-react';
 
 type FileExplorerProps = {
   files: JavaFile[];
@@ -15,9 +15,11 @@ export function FileExplorer({ files, activeFileId, onFileSelect, onFileClose }:
   return (
     <div className="flex h-full flex-col bg-card text-card-foreground">
       <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Folder className="h-5 w-5 text-primary" />
-          <span>Workspace</span>
+        <h2 className="text-lg font-semibold flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Folder className="h-5 w-5 text-primary" />
+              <span>Files</span>
+            </div>
         </h2>
       </div>
       <ScrollArea className="flex-1">
