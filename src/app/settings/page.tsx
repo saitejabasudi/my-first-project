@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Info } from 'lucide-react';
+import { ChevronLeft, Info, ShieldCheck } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,13 @@ const SettingsItem = ({ title, value }: { title: string, value: string | React.R
         <p className="text-sm text-muted-foreground">{value}</p>
     </div>
 );
+
+const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex items-center gap-2 pt-6 pb-2">
+    {children}
+  </div>
+);
+
 
 export default function SettingsPage() {
   const privacyPolicy = "Java Studio Pro is an offline Java coding application. It does not collect, store, or share any personal user data. All code and files remain on the user’s device. No internet access, tracking, or third-party services are used.";
@@ -66,6 +73,30 @@ export default function SettingsPage() {
             </Link>
             <SettingsItem title="Donate" value="Buy a cup of coffee for developer.☕" />
             <SettingsItem title="Current Version" value="3.3.8" />
+        </div>
+
+        <SectionTitle>
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold">Data Safety</h2>
+        </SectionTitle>
+
+        <div className="divide-y divide-border border-t">
+            <SettingsItem 
+              title="No Data Collected" 
+              value="This application does not collect any personal or sensitive user data. All operations are performed locally on your device." 
+            />
+            <SettingsItem 
+              title="No Data Shared with Third Parties" 
+              value="Since no data is collected, no data is shared with any third-party companies or services." 
+            />
+            <SettingsItem 
+              title="Security Practices" 
+              value="Your code and project files are stored exclusively on your device's local storage. They are not uploaded to any server." 
+            />
+            <SettingsItem 
+              title="Data Deletion" 
+              value="You can delete any project file directly from the project selection screen. Deleting the application from your device will remove all of its data." 
+            />
         </div>
       </main>
     </div>
