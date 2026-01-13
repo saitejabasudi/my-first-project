@@ -247,7 +247,7 @@ export function IdeLayout() {
     <div className="flex h-screen flex-col bg-background text-foreground">
       <IdeHeader activeFile={activeFile} onRun={handleCompile} isCompiling={isCompiling} mobileSidebar={renderMobileSidebar()} />
       <main className="flex flex-1 overflow-hidden">
-        <div className="hidden md:block md:w-64 flex-shrink-0 bg-card border-r">
+        <div className="hidden md:block md:w-48 flex-shrink-0 bg-card border-r">
           <FileExplorer
             files={allFiles}
             activeFileId={activeFile.id}
