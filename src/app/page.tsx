@@ -129,7 +129,7 @@ export default function ProjectSelectionPage() {
          // Reset to default files if all are deleted
         const defaultFiles = mockFiles;
         localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(defaultFiles));
-        router.refresh(); // Use router.refresh to re-trigger useEffects
+        setProjects(defaultFiles);
         return defaultFiles;
       }
 

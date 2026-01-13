@@ -136,7 +136,7 @@ export function IdeLayout() {
 
     if (fileToLoad) {
         setActiveFile(fileToLoad);
-        if (fileToLoad.id !== fileIdFromUrl) {
+        if (!fileIdFromUrl || allFiles.every(f => f.id !== fileIdFromUrl)) {
             router.replace(`/ide?file=${fileToLoad.id}`, { scroll: false });
         }
     } else {
@@ -168,15 +168,15 @@ export function IdeLayout() {
 
   const handleFileClose = useCallback((fileIdToClose: string) => {
     let newActiveFileId: string | null = null;
-    const currentActiveIndex = allFiles.findIndex(f => f.id === activeFile?.id);
+    let filesAfterClose: JavaFile[] = [];
 
     setAllFiles(currentFiles => {
-        const filesAfterClose = currentFiles.filter(f => f.id !== fileIdToClose);
+        filesAfterClose = currentFiles.filter(f => f.id !== fileIdToClose);
         
         if (activeFile?.id === fileIdToClose) {
             if (filesAfterClose.length > 0) {
-                // Try to select the next file, or the previous one if it was the last
-                const newIndex = Math.min(currentActiveIndex, filesAfterClose.length - 1);
+                const currentActiveIndex = currentFiles.findIndex(f => f.id === activeFile?.id);
+                const newIndex = Math.max(0, Math.min(currentActiveIndex, filesAfterClose.length - 1));
                 newActiveFileId = filesAfterClose[newIndex].id;
             }
         }
@@ -186,16 +186,21 @@ export function IdeLayout() {
         } catch(e) {
             console.error("Failed to save updated projects to localStorage", e)
         }
-
-        if (newActiveFileId) {
-             router.replace(`/ide?file=${newActiveFileId}`);
-        } else if (filesAfterClose.length === 0) {
-            router.push('/');
-        }
         
         return filesAfterClose;
     });
-  }, [activeFile, allFiles, router]);
+
+    if (newActiveFileId) {
+        router.replace(`/ide?file=${newActiveFileId}`);
+    } else if (filesAfterClose.length === 0) {
+        try {
+            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+        } catch (error) {
+           console.error("Failed to save default project to localStorage", error);
+        }
+        router.push('/');
+    }
+  }, [activeFile, router]);
 
   const handleCompile = useCallback(() => {
     if (!activeFile) return;
