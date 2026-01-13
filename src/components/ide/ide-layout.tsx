@@ -212,7 +212,7 @@ export function IdeLayout() {
             onFileClose={handleFileClose}
           />
         </div>
-        <div className="flex-1 flex flex-col overflow-hidden relative">
+        <div className="flex flex-1 flex-col overflow-hidden relative">
           <div className="border-b">
               <div className="px-2 py-1">
                 <Button variant="ghost" size="sm" className="h-8 gap-2 bg-accent/20">
