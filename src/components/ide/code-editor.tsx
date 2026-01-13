@@ -24,6 +24,19 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newCode = `${code.substring(0, start)}\t${code.substring(end)}`;
+      onCodeChange(newCode);
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 1;
+      }, 0);
+      return;
+    }
+
     if (e.key === 'Enter') {
       const textarea = e.currentTarget;
       const start = textarea.selectionStart;
@@ -33,39 +46,32 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
       const currentLineText = textBeforeCursor.split('\n').pop() || '';
       const trimmedLine = currentLineText.trim();
       
-      // More robust check for complete statements in Java
       const isCompleteStatement = 
-        trimmedLine.length === 0 || // Empty line
-        trimmedLine.endsWith(';') || // Ends with semicolon
-        trimmedLine.endsWith('{') || // Ends with opening brace
-        trimmedLine.endsWith('}') || // Ends with closing brace
-        trimmedLine.startsWith('//') || // Is a comment
-        trimmedLine.startsWith('@') || // Is an annotation
-        /^\s*(public|private|protected|static|final|abstract|class|interface|enum|implements|extends)/.test(trimmedLine) || // Is a class/interface/enum declaration
-        /^\s*(if|for|while|switch|try|catch|finally)\s*\(.*\)\s*\{?$/.test(trimmedLine) || // Is a control flow statement
-        /^\s*else(\s*if\s*\(.*\))?\s*\{?$/.test(trimmedLine); // Is an else or else if statement
+        trimmedLine.length === 0 ||
+        trimmedLine.endsWith(';') ||
+        trimmedLine.endsWith('{') ||
+        trimmedLine.endsWith('}') ||
+        trimmedLine.startsWith('//') || 
+        trimmedLine.startsWith('@') ||
+        /^\s*(public|private|protected|static|final|abstract|class|interface|enum|implements|extends)/.test(trimmedLine) ||
+        /^\s*(if|for|while|switch|try|catch|finally)\s*\(.*\)\s*\{?$/.test(trimmedLine) ||
+        /^\s*else(\s*if\s*\(.*\))?\s*\{?$/.test(trimmedLine);
         
-      if (!isCompleteStatement) {
-        // If the statement is not complete, prevent the default Enter action.
-        // This is a placeholder for a smarter system. In a real IDE,
-        // you might show a tooltip or error. For now, we just block.
-        e.preventDefault();
-        return;
+      if (!isCompleteStatement && textBeforeCursor !== code) {
+        // Simple check to allow enter on last line always
       }
       
-      // If the statement is complete, proceed with auto-indentation.
       e.preventDefault();
       const indentMatch = currentLineText.match(/^\s*/);
       let indent = indentMatch ? indentMatch[0] : '';
       
       if (trimmedLine.endsWith('{')) {
-          indent += '    '; // Add extra indent if line ends with an opening brace
+          indent += '    ';
       }
 
       const newCode = `${code.substring(0, start)}\n${indent}${code.substring(end)}`;
       onCodeChange(newCode);
 
-      // Set cursor position after the new line and indentation
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 1 + indent.length;
       }, 0);
@@ -73,14 +79,14 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   };
 
   const highlightSegment = (segment: string) => {
-    const keywordRegex = /\b(public|class|static|void|main|String|System|out|println|if|else|for|while|switch|case|break|continue|return|int|double|boolean|char|new)\b/g;
+    const keywordRegex = /\b(public|class|static|void|main|String|System|out|println|if|else|for|while|switch|case|break|continue|return|int|double|boolean|char|new|true|false|null|import|package|extends|implements|super|this|throw|throws|try|catch|finally|abstract|final|private|protected|synchronized|volatile|transient|native|strictfp|assert|enum)\b/g;
     return segment.split(keywordRegex).map((part, index) => {
       if (index % 2 === 1) { // It's a keyword
         return <span key={index} className="text-syntax-keyword">{part}</span>;
       }
       // Not a keyword, check for braces
-      return part.split(/([{}()])/g).map((subPart, subIndex) => {
-        if (subPart.match(/[{}()]/)) {
+      return part.split(/([{}()[\],.;])/g).map((subPart, subIndex) => {
+        if (subPart.match(/[{}()[\],.;]/)) {
           return <span key={`${index}-${subIndex}`} className="text-syntax-highlight">{subPart}</span>;
         }
         return subPart;
@@ -90,21 +96,26 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
   const renderHighlightedCode = () => {
     const codeToRender = code + '\n'; // Add newline to ensure last line is rendered
-    const stringRegex = /("([^"\\]|\\.)*")/g;
+    const stringAndCommentRegex = /("([^"\\]|\\.)*")|(\/\/[^\n]*)|\/\*[\s\S]*?\*\//g;
     
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
     let match;
 
-    while((match = stringRegex.exec(codeToRender)) !== null) {
-      const nonStringPart = codeToRender.substring(lastIndex, match.index);
-      if (nonStringPart) {
-        parts.push(highlightSegment(nonStringPart));
+    while((match = stringAndCommentRegex.exec(codeToRender)) !== null) {
+      const nonProcessedPart = codeToRender.substring(lastIndex, match.index);
+      if (nonProcessedPart) {
+        parts.push(highlightSegment(nonProcessedPart));
       }
 
-      const stringPart = match[0];
-      parts.push(<span key={`string-${match.index}`} className="text-syntax-string">{stringPart}</span>);
-      lastIndex = match.index + stringPart.length;
+      const matchedPart = match[0];
+      if (matchedPart.startsWith('"')) {
+          parts.push(<span key={`string-${match.index}`} className="text-syntax-string">{matchedPart}</span>);
+      } else {
+          parts.push(<span key={`comment-${match.index}`} className="text-green-500">{matchedPart}</span>);
+      }
+
+      lastIndex = match.index + matchedPart.length;
     }
     
     const remainingPart = codeToRender.substring(lastIndex);
@@ -144,7 +155,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
                 <pre 
                     ref={highlighterRef}
                     aria-hidden="true"
-                    className={`absolute inset-0 h-full w-full bg-transparent overflow-auto z-10 pointer-events-none whitespace-pre-wrap ${editorStyles}`}
+                    className={`absolute inset-0 h-full w-full bg-transparent overflow-auto z-10 pointer-events-none whitespace-pre ${editorStyles}`}
                 >
                     {renderHighlightedCode()}
                 </pre>
