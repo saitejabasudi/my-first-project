@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { X, Trash2 } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { SymbolToolbar } from './symbol-toolbar';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
@@ -214,6 +214,12 @@ export function IdeLayout() {
             <Button variant="ghost">MENU</Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-3/4 bg-card">
+            <SheetHeader className="sr-only">
+              <SheetTitle>File Explorer</SheetTitle>
+              <SheetDescription>
+                Browse and select files in your project.
+              </SheetDescription>
+            </SheetHeader>
             <FileExplorer 
               files={allFiles}
               activeFileId={activeFile.id}
