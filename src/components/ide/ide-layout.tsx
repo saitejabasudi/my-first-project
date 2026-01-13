@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { X, Trash2, Menu } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 

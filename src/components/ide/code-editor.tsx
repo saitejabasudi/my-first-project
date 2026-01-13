@@ -12,12 +12,8 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
   const highlighterRef = useRef<HTMLDivElement>(null);
-  const [lineCount, setLineCount] = useState(1);
 
-  useEffect(() => {
-    const lines = code.split('\n').length;
-    setLineCount(lines > 0 ? lines : 1);
-  }, [code]);
+  const lineCount = code.split('\n').length || 1;
   
   const handleScroll = () => {
     if (lineNumbersRef.current && textareaRef.current && highlighterRef.current) {
@@ -30,20 +26,13 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   const highlightSegment = (segment: string, key: string) => {
     const keywordRegex = /\b(public|class|static|void|main|String|System|out|println|if|else|for|while|switch|case|break|continue|return|int|double|boolean|char|new)\b/g;
     let lastIndex = 0;
-    const parts = [];
+    const parts: React.ReactNode[] = [];
     let match;
 
     while((match = keywordRegex.exec(segment)) !== null) {
       const nonKeywordPart = segment.substring(lastIndex, match.index);
        if (nonKeywordPart) {
-        parts.push(
-          <React.Fragment key={`${key}-non-keyword-${lastIndex}`}>
-            {nonKeywordPart.split('').map((char, index) => 
-              (char === '{' || char === '}') ? 
-              <span key={`${key}-brace-${lastIndex}-${index}`} className="text-syntax-highlight">{char}</span> : char
-            )}
-          </React.Fragment>
-        );
+        parts.push(nonKeywordPart);
       }
 
       const keywordPart = match[0];
@@ -53,35 +42,39 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
     const remainingPart = segment.substring(lastIndex);
     if(remainingPart) {
-        parts.push(
-          <React.Fragment key={`${key}-remaining-${lastIndex}`}>
-            {remainingPart.split('').map((char, index) => 
-              (char === '{' || char === '}') ? 
-              <span key={`${key}-brace-rem-${lastIndex}-${index}`} className="text-syntax-highlight">{char}</span> : char
-            )}
-          </React.Fragment>
-        );
+        parts.push(remainingPart);
     }
 
-    return parts;
+    // This part is simplified, as complex brace highlighting mixed with keywords can be tricky.
+    // The main goal is keyword and string highlighting.
+    const finalParts = parts.map((part, index) => {
+      if (typeof part === 'string') {
+        return part.split(/([{}])/g).map((subPart, subIndex) => {
+          if (subPart === '{' || subPart === '}') {
+            return <span key={`${key}-brace-${index}-${subIndex}`} className="text-syntax-highlight">{subPart}</span>;
+          }
+          return subPart;
+        });
+      }
+      return part;
+    });
+
+
+    return <>{finalParts}</>;
   };
 
   const renderHighlightedCode = () => {
-    const codeToRender = code + '\n';
+    const codeToRender = code + '\n'; // Add newline for consistent final line rendering
     const stringRegex = /"([^"\\]|\\.)*"/g;
     
+    const parts: React.ReactNode[] = [];
     let lastIndex = 0;
-    const parts = [];
     let match;
 
     while((match = stringRegex.exec(codeToRender)) !== null) {
       const nonStringPart = codeToRender.substring(lastIndex, match.index);
       if (nonStringPart) {
-        parts.push(
-          <React.Fragment key={`non-string-${lastIndex}`}>
-            {highlightSegment(nonStringPart, `non-string-segment-${lastIndex}`)}
-          </React.Fragment>
-        );
+        parts.push(highlightSegment(nonStringPart, `non-string-${lastIndex}`));
       }
 
       const stringPart = match[0];
@@ -91,14 +84,10 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
     
     const remainingPart = codeToRender.substring(lastIndex);
     if(remainingPart) {
-       parts.push(
-          <React.Fragment key={`non-string-${lastIndex}`}>
-            {highlightSegment(remainingPart, `remaining-segment-${lastIndex}`)}
-          </React.Fragment>
-        );
+       parts.push(highlightSegment(remainingPart, `remaining-${lastIndex}`));
     }
     
-    return parts;
+    return <>{parts}</>;
   };
 
   const editorStyles = "font-code text-base leading-relaxed p-4 border-0 rounded-none resize-none";
