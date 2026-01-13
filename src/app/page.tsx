@@ -120,6 +120,11 @@ export default function ProjectSelectionPage() {
       } catch (error) {
         console.error("Failed to save projects to localStorage", error);
       }
+      
+      if (updatedProjects.length === 0) {
+          router.push('/');
+      }
+      
       return updatedProjects;
     });
   };
@@ -201,11 +206,7 @@ export default function ProjectSelectionPage() {
                     variant="ghost"
                     size="icon"
                     className="absolute top-1/2 right-4 -translate-y-1/2 h-10 w-10 text-muted-foreground opacity-50 hover:opacity-100 hover:text-destructive"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleDeleteClick(file.id);
-                    }}
+                    onClick={() => handleDeleteClick(file.id)}
                 >
                     <Trash2 className="h-5 w-5" />
                 </Button>

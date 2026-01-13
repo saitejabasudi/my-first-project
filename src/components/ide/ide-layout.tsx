@@ -218,13 +218,24 @@ export function IdeLayout() {
   const handleAccessoryKeyPress = useCallback((key: string) => {
     if (!activeFile) return;
     const char = key === "Tab" ? "    " : key;
-    const newCode = activeFile.content + char;
+    const textarea = document.querySelector('textarea[aria-label="Code Editor"]') as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const newCode = activeFile.content.substring(0, start) + char + activeFile.content.substring(end);
     handleCodeChange(newCode);
+
+    setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + char.length;
+        textarea.focus();
+    }, 0);
   }, [activeFile, handleCodeChange]);
   
   if (!activeFile || !isLoaded) {
     return (
-        <div className="flex h-screen w-full items-center justify-center">
+        <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
             Loading project...
         </div>
     );
