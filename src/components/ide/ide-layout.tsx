@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
@@ -10,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { X, Trash2, Menu } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
-import { AccessoryKeys } from './accessory-keys';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
@@ -215,23 +215,6 @@ export function IdeLayout() {
     }, 1500);
   }, [activeFile, toast]);
 
-  const handleAccessoryKeyPress = useCallback((key: string) => {
-    if (!activeFile) return;
-    const char = key === "Tab" ? "    " : key;
-    const textarea = document.querySelector('textarea[aria-label="Code Editor"]') as HTMLTextAreaElement;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-
-    const newCode = activeFile.content.substring(0, start) + char + activeFile.content.substring(end);
-    handleCodeChange(newCode);
-
-    setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = start + char.length;
-        textarea.focus();
-    }, 0);
-  }, [activeFile, handleCodeChange]);
   
   if (!activeFile || !isLoaded) {
     return (
@@ -276,7 +259,6 @@ export function IdeLayout() {
           <div className="flex-1 overflow-auto">
             <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
           </div>
-          <AccessoryKeys onKeyPress={handleAccessoryKeyPress} />
         </div>
       </main>
 
