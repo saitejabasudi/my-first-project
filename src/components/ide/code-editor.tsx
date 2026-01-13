@@ -28,7 +28,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   };
 
   const highlightSegment = (segment: string, key: string) => {
-    const keywordRegex = /\b(if|else|for|while|switch|case|break|continue|return)\b/g;
+    const keywordRegex = /\b(public|class|static|void|main|String|System|out|println|if|else|for|while|switch|case|break|continue|return|int|double|boolean|char|new)\b/g;
     let lastIndex = 0;
     const parts = [];
     let match;
@@ -106,7 +106,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
         <div className="flex flex-1 overflow-hidden bg-background relative">
             <div 
                 ref={lineNumbersRef}
-                className="w-12 text-right pr-2 pt-4 font-code text-base text-muted-foreground select-none overflow-y-hidden bg-background z-10"
+                className="w-12 text-right pr-2 pt-4 font-code text-base text-muted-foreground select-none overflow-y-hidden bg-background z-10 leading-relaxed"
                 aria-hidden="true"
             >
                 {Array.from({ length: lineCount }, (_, i) => (
