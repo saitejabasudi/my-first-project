@@ -1,29 +1,26 @@
 "use client";
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
 import type { JavaFile } from '@/lib/mock-files';
 import React from 'react';
 
 type IdeHeaderProps = {
   activeFile: JavaFile;
+  onRun: () => void;
+  isCompiling: boolean;
   mobileSidebar: React.ReactNode;
 };
 
-export function IdeHeader({ activeFile, mobileSidebar }: IdeHeaderProps) {
+export function IdeHeader({ activeFile, onRun, isCompiling, mobileSidebar }: IdeHeaderProps) {
   return (
-    <header className="flex h-16 flex-shrink-0 items-center justify-between border-b bg-card px-4">
+    <header className="flex h-16 flex-shrink-0 items-center justify-between bg-card px-4">
       <div className="flex items-center gap-2">
-        <Link href="/" passHref>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
         <div>
-          <h1 className="text-lg font-semibold">{activeFile.name}</h1>
+          <h1 className="text-lg font-semibold">Java Studio Pro</h1>
+          <p className="text-xs text-muted-foreground">Nothing changed</p>
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <Button variant="ghost" onClick={onRun} disabled={isCompiling}>RUN</Button>
         {mobileSidebar}
       </div>
     </header>

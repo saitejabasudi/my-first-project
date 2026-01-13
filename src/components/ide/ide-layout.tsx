@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
@@ -8,12 +7,12 @@ import { useToast } from '@/hooks/use-toast';
 import { IdeHeader } from './ide-header';
 import { CodeEditor } from './code-editor';
 import { Button } from '@/components/ui/button';
-import { Play, X, Trash2 } from 'lucide-react';
+import { Play, X, Trash2, Menu } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
 import { Card } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import { SymbolToolbar } from './symbol-toolbar';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
@@ -136,6 +135,10 @@ export function IdeLayout() {
     }
   }, [activeFile, allFiles]);
 
+  const handleInsertText = (text: string) => {
+    handleCodeChange(activeFile?.content + text);
+  };
+
   const handleFileSelect = useCallback((fileId: string) => {
     const fileToSelect = allFiles.find(f => f.id === fileId);
     if(fileToSelect) {
@@ -208,11 +211,9 @@ export function IdeLayout() {
   const renderMobileSidebar = () => (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Menu className="h-5 w-5" />
-            </Button>
+            <Button variant="ghost">MENU</Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-3/4">
+        <SheetContent side="left" className="p-0 w-3/4 bg-card">
             <FileExplorer 
               files={allFiles}
               activeFileId={activeFile.id}
@@ -225,34 +226,30 @@ export function IdeLayout() {
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
-      <IdeHeader activeFile={activeFile} mobileSidebar={renderMobileSidebar()} />
-      <main className="flex flex-1 flex-col overflow-hidden relative">
-          <div className="flex-1 flex flex-col overflow-auto">
-            {showOutput && (
-              <div className="flex-shrink-0 h-1/3 border-b">
-                  <Card className="h-full flex flex-col rounded-none">
-                      <div className="flex items-center justify-between p-2 border-b">
-                          <span className="text-sm font-medium">Output</span>
-                          <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setOutput([])} disabled={isCompiling}>
-                                  <Trash2 className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowOutput(false)}>
-                                  <X className="h-4 w-4" />
-                              </Button>
-                          </div>
+      <IdeHeader activeFile={activeFile} onRun={handleCompile} isCompiling={isCompiling} mobileSidebar={renderMobileSidebar()} />
+      <main className="flex flex-1 flex-col overflow-hidden">
+        {showOutput && (
+          <div className="flex-shrink-0 h-1/3 border-b border-border">
+              <Card className="h-full flex flex-col rounded-none border-0">
+                  <div className="flex items-center justify-between p-2 border-b border-border">
+                      <span className="text-sm font-medium">Output</span>
+                      <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setOutput([])} disabled={isCompiling}>
+                              <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowOutput(false)}>
+                              <X className="h-4 w-4" />
+                          </Button>
                       </div>
-                      <TerminalView output={output} />
-                  </Card>
-              </div>
-            )}
-            <div className="flex-1 overflow-auto">
-              <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
-            </div>
+                  </div>
+                  <TerminalView output={output} />
+              </Card>
           </div>
-          <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg" size="icon">
-            <Play className="h-7 w-7 text-primary-foreground fill-primary-foreground" />
-          </Button>
+        )}
+        <div className="flex-1 overflow-auto">
+          <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
+        </div>
+        <SymbolToolbar onSymbolClick={handleInsertText} />
       </main>
     </div>
   );
