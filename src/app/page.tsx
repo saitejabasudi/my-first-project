@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, FileCode, Trash2 } from 'lucide-react';
+import { Plus, FileCode, Trash2, Settings } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { Logo } from '@/components/logo';
 import { Progress } from '@/components/ui/progress';
@@ -120,20 +120,10 @@ export default function ProjectSelectionPage() {
 
   const clearPressTimer = () => {
     clearTimeout(longPressTimer.current);
-    if (!isLongPress.current && deletingId) {
-        // If it's not a long press but delete was active on a card, this tap
-        // might be to dismiss it.
-        // We'll use a small timeout to let a potential click event resolve first.
-        setTimeout(() => {
-            if (!isLongPress.current) {
-                setDeletingId(null);
-            }
-        }, 100);
-    }
   };
-
+  
   const handleCardClick = (event: React.MouseEvent, fileId: string) => {
-    if (isLongPress.current || deletingId === fileId) {
+    if (deletingId === fileId) {
       event.preventDefault();
     }
   }
@@ -158,7 +148,7 @@ export default function ProjectSelectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-body" onClick={() => { if(deletingId && !isLongPress.current) setDeletingId(null) }}>
+    <div className="min-h-screen bg-background text-foreground font-body" onClick={() => { if(deletingId) setDeletingId(null) }}>
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-2 rounded-lg">
@@ -166,38 +156,45 @@ export default function ProjectSelectionPage() {
           </div>
           <h1 className="text-xl font-semibold">Java Projects</h1>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Plus className="h-6 w-6" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create New Project</DialogTitle>
-              <DialogDescription>
-                Enter a name for your new Java project. This will be used as the class name.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Project Name
-                </Label>
-                <Input
-                  id="name"
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
-                  className="col-span-3"
-                  placeholder="e.g., MyAwesomeApp"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" onClick={handleCreateProject}>Create</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center">
+            <Link href="/settings" passHref>
+                <Button variant="ghost" size="icon">
+                  <Settings className="h-6 w-6" />
+                </Button>
+            </Link>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Plus className="h-6 w-6" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Create New Project</DialogTitle>
+                  <DialogDescription>
+                    Enter a name for your new Java project. This will be used as the class name.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Project Name
+                    </Label>
+                    <Input
+                      id="name"
+                      value={newProjectName}
+                      onChange={(e) => setNewProjectName(e.target.value)}
+                      className="col-span-3"
+                      placeholder="e.g., MyAwesomeApp"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" onClick={handleCreateProject}>Create</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+        </div>
       </header>
       <main className="p-4">
         <div className="grid gap-4">
