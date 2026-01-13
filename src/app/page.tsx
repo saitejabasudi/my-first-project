@@ -118,18 +118,23 @@ export default function ProjectSelectionPage() {
     }, 500); // 500ms for long press
   };
 
-  const clearPressTimer = (fileId: string) => {
+  const clearPressTimer = () => {
     clearTimeout(longPressTimer.current);
-    if (!isLongPress.current && deletingId === fileId) {
-      // If it's not a long press but delete was active, this is a tap, so hide delete
-      setDeletingId(null);
+    if (!isLongPress.current && deletingId) {
+        // If it's not a long press but delete was active on a card, this tap
+        // might be to dismiss it.
+        // We'll use a small timeout to let a potential click event resolve first.
+        setTimeout(() => {
+            if (!isLongPress.current) {
+                setDeletingId(null);
+            }
+        }, 100);
     }
   };
 
   const handleCardClick = (event: React.MouseEvent, fileId: string) => {
     if (isLongPress.current || deletingId === fileId) {
       event.preventDefault();
-      // Keep delete button visible, but don't navigate
     }
   }
 
@@ -201,12 +206,12 @@ export default function ProjectSelectionPage() {
               key={file.id} 
               className="relative"
               onMouseDown={() => startPressTimer(file.id)}
-              onMouseUp={() => clearPressTimer(file.id)}
+              onMouseUp={clearPressTimer}
               onTouchStart={() => startPressTimer(file.id)}
-              onTouchEnd={() => clearPressTimer(file.id)}
+              onTouchEnd={clearPressTimer}
               onMouseLeave={() => clearTimeout(longPressTimer.current)}
               >
-              <Link href={`/ide?file=${file.id}`} onClick={(e: React.MouseEvent) => handleCardClick(e, file.id)}>
+              <Link href={`/ide?file=${file.id}`} onClick={(e) => handleCardClick(e, file.id)}>
                 <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
                   <CardContent className="pt-6 flex items-start gap-4">
                     <div className="bg-secondary p-3 rounded-lg">
