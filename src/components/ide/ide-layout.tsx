@@ -7,10 +7,9 @@ import { useToast } from '@/hooks/use-toast';
 import { IdeHeader } from './ide-header';
 import { CodeEditor } from './code-editor';
 import { Button } from '@/components/ui/button';
-import { Play, X, Trash2 } from 'lucide-react';
+import { Play, X } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
-import { TerminalView } from './terminal-view';
-import { Card } from '../ui/card';
+import { AIAssistant } from './ai-assistant';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
@@ -202,14 +201,6 @@ export function IdeLayout() {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <IdeHeader activeFile={activeFile} />
-      <div className="hidden sm:block border-b">
-          <div className="px-2 py-1">
-            <Button variant="ghost" size="sm" className="h-8 gap-2 bg-accent/20">
-                <X className="h-4 w-4" onClick={() => handleFileClose(activeFile.id)}/>
-                <span>{activeFile.name}</span>
-            </Button>
-          </div>
-      </div>
       <main className="flex flex-1 overflow-hidden">
         <div className="w-64 hidden sm:block border-r">
           <FileExplorer 
@@ -220,30 +211,23 @@ export function IdeLayout() {
           />
         </div>
         <div className="flex-1 flex flex-col overflow-hidden relative">
+          <div className="border-b">
+              <div className="px-2 py-1">
+                <Button variant="ghost" size="sm" className="h-8 gap-2 bg-accent/20">
+                    <X className="h-4 w-4" onClick={(e) => { e.stopPropagation(); handleFileClose(activeFile.id); }}/>
+                    <span>{activeFile.name}</span>
+                </Button>
+              </div>
+          </div>
           <div className="flex-1 overflow-auto">
             <CodeEditor code={activeFile.content} onCodeChange={handleCodeChange} />
           </div>
-          {showOutput && (
-            <div className="flex-shrink-0 h-1/3 border-t">
-              <Card className="h-full rounded-none">
-                <div className="flex items-center justify-between p-2 border-b h-12">
-                  <h3 className="font-semibold text-sm px-2">Output</h3>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setOutput([])}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setShowOutput(false)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <TerminalView output={output} />
-              </Card>
-            </div>
-          )}
           <Button onClick={handleCompile} disabled={isCompiling} className="absolute bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg" size="icon">
             <Play className="h-7 w-7 text-primary-foreground fill-primary-foreground" />
           </Button>
+        </div>
+        <div className="w-80 hidden lg:block border-l">
+          <AIAssistant />
         </div>
       </main>
     </div>
