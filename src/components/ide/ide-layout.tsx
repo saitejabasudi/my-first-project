@@ -88,6 +88,7 @@ export function IdeLayout() {
   const router = useRouter();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
+  // Load files from localStorage once on initial mount
   useEffect(() => {
     let files: JavaFile[] = [];
     try {
@@ -98,26 +99,52 @@ export function IdeLayout() {
         files = mockFiles;
         localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
       }
-      setAllFiles(files);
     } catch (error) {
       console.error("Failed to load projects from localStorage", error);
       files = mockFiles;
-      setAllFiles(files);
+    }
+    
+    if (files.length === 0) {
+      try {
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+        files = mockFiles;
+      } catch (error) {
+         console.error("Failed to save default project to localStorage", error);
+         router.push('/');
+         return;
+      }
+    }
+    
+    setAllFiles(files);
+  }, [router]);
+
+  // Set active file based on URL or default
+  useEffect(() => {
+    if (allFiles.length === 0) {
+        // If allFiles hasn't loaded yet, just wait.
+        if (localStorage.getItem(PROJECTS_STORAGE_KEY) === null) {
+            router.push('/');
+        }
+        return;
     }
 
     const fileIdFromUrl = searchParams.get('file');
-    const fileToLoad = files.find(f => f.id === fileIdFromUrl) || files.find(f => f.name === 'Main.java');
-    
+    const fileToLoad = allFiles.find(f => f.id === fileIdFromUrl);
+
     if (fileToLoad) {
       setActiveFile(fileToLoad);
-    } else if (files.length > 0) {
-      const firstFile = files[0];
-      setActiveFile(firstFile);
-      router.replace(`/ide?file=${firstFile.id}`);
     } else {
+      // If no file in URL, or file in URL is not found, default to first file.
+      const firstFile = allFiles[0];
+      if (firstFile) {
+        setActiveFile(firstFile);
+        router.replace(`/ide?file=${firstFile.id}`);
+      } else {
+        // This case handles when all files have been deleted.
         router.push('/');
+      }
     }
-  }, [searchParams, router]);
+  }, [searchParams, allFiles, router]);
 
   const handleCodeChange = useCallback((newCode: string) => {
     if (!activeFile) return;
@@ -125,14 +152,16 @@ export function IdeLayout() {
     const updatedFile = { ...activeFile, content: newCode };
     setActiveFile(updatedFile);
 
-    try {
-      const updatedFiles = allFiles.map((f: JavaFile) => f.id === activeFile.id ? updatedFile : f);
-      setAllFiles(updatedFiles);
-      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
-    } catch (error) {
-        console.error("Failed to save project to localStorage", error);
-    }
-  }, [activeFile, allFiles]);
+    setAllFiles(currentFiles => {
+      const updatedFiles = currentFiles.map((f: JavaFile) => f.id === activeFile.id ? updatedFile : f);
+      try {
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
+      } catch (error) {
+          console.error("Failed to save project to localStorage", error);
+      }
+      return updatedFiles;
+    });
+  }, [activeFile]);
 
   const handleFileSelect = useCallback((fileId: string) => {
     const fileToSelect = allFiles.find(f => f.id === fileId);
@@ -149,7 +178,7 @@ export function IdeLayout() {
         try {
             localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
         } catch(e) {
-            console.error(e)
+            console.error("Failed to save updated projects to localStorage", e)
         }
 
         if (activeFile?.id === fileIdToClose) {
