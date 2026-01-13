@@ -168,27 +168,26 @@ export function IdeLayout() {
     let newActiveFileId: string | null = null;
     
     setAllFiles(currentFiles => {
-        const updatedFiles = currentFiles.filter(f => f.id !== fileIdToClose);
+        const filesAfterClose = currentFiles.filter(f => f.id !== fileIdToClose);
+        if (activeFile?.id === fileIdToClose) {
+            if (filesAfterClose.length > 0) {
+                newActiveFileId = filesAfterClose[0].id;
+            }
+        }
+        
         try {
-            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
+            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(filesAfterClose));
         } catch(e) {
             console.error("Failed to save updated projects to localStorage", e)
         }
-
-        if (activeFile?.id === fileIdToClose) {
-            if (updatedFiles.length > 0) {
-                newActiveFileId = updatedFiles[0].id;
-            }
-        }
-        return updatedFiles;
+        return filesAfterClose;
     });
     
-    // Defer navigation to allow state to update
     setTimeout(() => {
         if (newActiveFileId) {
             router.replace(`/ide?file=${newActiveFileId}`);
         } else if (allFiles.filter(f => f.id !== fileIdToClose).length === 0) {
-            router.push('/');
+             router.push('/');
         }
     }, 0);
 

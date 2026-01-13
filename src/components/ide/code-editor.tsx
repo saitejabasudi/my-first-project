@@ -143,7 +143,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
                     <div key={i}>{i + 1}</div>
                 ))}
             </div>
-            <div className="relative w-full h-full">
+            <div className="relative w-full h-full overflow-x-auto">
                 <Textarea
                   ref={textareaRef}
                   value={code}
