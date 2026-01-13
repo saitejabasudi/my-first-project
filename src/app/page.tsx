@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -38,7 +39,7 @@ function SplashScreen({ progress }: { progress: number }) {
 export default function ProjectSelectionPage() {
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [open, setOpen] = useState(false);
+  const [isCreateProjectOpen, setCreateProjectOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [projects, setProjects] = useState<JavaFile[]>([]);
   const router = useRouter();
@@ -107,7 +108,7 @@ export default function ProjectSelectionPage() {
         console.error("Failed to save projects to localStorage", error);
     }
     
-    setOpen(false);
+    setCreateProjectOpen(false);
     setNewProjectName('');
     router.push(`/ide?file=${newFile.id}`);
   };
@@ -119,10 +120,6 @@ export default function ProjectSelectionPage() {
         localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedProjects));
       } catch (error) {
         console.error("Failed to save projects to localStorage", error);
-      }
-      
-      if (updatedProjects.length === 0) {
-          router.push('/');
       }
       
       return updatedProjects;
@@ -149,7 +146,7 @@ export default function ProjectSelectionPage() {
                   <Settings className="h-6 w-6" />
                 </Button>
             </Link>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={isCreateProjectOpen} onOpenChange={setCreateProjectOpen}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Plus className="h-6 w-6" />

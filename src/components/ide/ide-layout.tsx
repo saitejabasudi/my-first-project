@@ -94,23 +94,22 @@ export function IdeLayout() {
     try {
       const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
       if (storedProjectsJson) {
-        files = JSON.parse(storedProjectsJson);
-      } else {
-        files = mockFiles;
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+        const parsedFiles = JSON.parse(storedProjectsJson);
+        if (Array.isArray(parsedFiles) && parsedFiles.length > 0) {
+            files = parsedFiles;
+        }
       }
     } catch (error) {
       console.error("Failed to load projects from localStorage", error);
-      files = mockFiles;
     }
     
     if (files.length === 0) {
-      try {
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
         files = mockFiles;
-      } catch (error) {
-         console.error("Failed to save default project to localStorage", error);
-      }
+        try {
+            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+        } catch (error) {
+           console.error("Failed to save default project to localStorage", error);
+        }
     }
     
     setAllFiles(files);
@@ -122,14 +121,15 @@ export function IdeLayout() {
 
     const fileIdFromUrl = searchParams.get('file');
     let fileToLoad: JavaFile | undefined;
-
+    
     if (allFiles.length > 0) {
-      if (fileIdFromUrl) {
-        fileToLoad = allFiles.find(f => f.id === fileIdFromUrl);
-      }
-      if (!fileToLoad) {
-        fileToLoad = allFiles[0];
-      }
+        if (fileIdFromUrl) {
+            fileToLoad = allFiles.find(f => f.id === fileIdFromUrl);
+        }
+        
+        if (!fileToLoad) {
+            fileToLoad = allFiles[0];
+        }
     }
 
     if (fileToLoad) {
@@ -165,6 +165,8 @@ export function IdeLayout() {
   }, [router]);
 
   const handleFileClose = useCallback((fileIdToClose: string) => {
+    let newActiveFileId: string | null = null;
+    
     setAllFiles(currentFiles => {
         const updatedFiles = currentFiles.filter(f => f.id !== fileIdToClose);
         try {
@@ -175,15 +177,22 @@ export function IdeLayout() {
 
         if (activeFile?.id === fileIdToClose) {
             if (updatedFiles.length > 0) {
-                const newActiveFile = updatedFiles[0];
-                router.replace(`/ide?file=${newActiveFile.id}`);
-            } else {
-                router.push('/');
+                newActiveFileId = updatedFiles[0].id;
             }
         }
         return updatedFiles;
     });
-  }, [activeFile, router]);
+    
+    // Defer navigation to allow state to update
+    setTimeout(() => {
+        if (newActiveFileId) {
+            router.replace(`/ide?file=${newActiveFileId}`);
+        } else if (allFiles.filter(f => f.id !== fileIdToClose).length === 0) {
+            router.push('/');
+        }
+    }, 0);
+
+  }, [activeFile, router, allFiles]);
 
   const handleCompile = useCallback(() => {
     if (!activeFile) return;
