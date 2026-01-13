@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
 
 const SettingsItem = ({ title, value }: { title: string, value: string }) => (
     <div className="py-4">
