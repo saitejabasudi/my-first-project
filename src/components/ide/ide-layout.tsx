@@ -136,7 +136,7 @@ export function IdeLayout() {
 
     if (fileToLoad) {
         setActiveFile(fileToLoad);
-        if (!fileIdFromUrl || allFiles.every(f => f.id !== fileIdFromUrl)) {
+        if (!fileIdFromUrl || fileIdFromUrl !== fileToLoad.id) {
             router.replace(`/ide?file=${fileToLoad.id}`, { scroll: false });
         }
     } else {
@@ -167,40 +167,33 @@ export function IdeLayout() {
   }, [router]);
 
   const handleFileClose = useCallback((fileIdToClose: string) => {
-    let newActiveFileId: string | null = null;
-    let filesAfterClose: JavaFile[] = [];
-
-    setAllFiles(currentFiles => {
-        filesAfterClose = currentFiles.filter(f => f.id !== fileIdToClose);
-        
-        if (activeFile?.id === fileIdToClose) {
-            if (filesAfterClose.length > 0) {
-                const currentActiveIndex = currentFiles.findIndex(f => f.id === activeFile?.id);
-                const newIndex = Math.max(0, Math.min(currentActiveIndex, filesAfterClose.length - 1));
-                newActiveFileId = filesAfterClose[newIndex].id;
-            }
-        }
-        
-        try {
-            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(filesAfterClose));
-        } catch(e) {
-            console.error("Failed to save updated projects to localStorage", e)
-        }
-        
-        return filesAfterClose;
-    });
-
-    if (newActiveFileId) {
-        router.replace(`/ide?file=${newActiveFileId}`);
-    } else if (filesAfterClose.length === 0) {
-        try {
-            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
-        } catch (error) {
-           console.error("Failed to save default project to localStorage", error);
-        }
-        router.push('/');
+    const filesAfterClose = allFiles.filter(f => f.id !== fileIdToClose);
+    
+    try {
+        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(filesAfterClose));
+    } catch(e) {
+        console.error("Failed to save updated projects to localStorage", e)
     }
-  }, [activeFile, router]);
+
+    setAllFiles(filesAfterClose);
+
+    if (activeFile?.id === fileIdToClose) {
+        if (filesAfterClose.length > 0) {
+            const currentActiveIndex = allFiles.findIndex(f => f.id === activeFile?.id);
+            const newIndex = Math.max(0, Math.min(currentActiveIndex - 1, filesAfterClose.length - 1));
+            const newActiveFileId = filesAfterClose[newIndex].id;
+            router.replace(`/ide?file=${newActiveFileId}`);
+        } else {
+            // No files left, go to home and reset to default
+            try {
+                localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+            } catch (error) {
+               console.error("Failed to save default project to localStorage", error);
+            }
+            router.push('/');
+        }
+    }
+  }, [activeFile, router, allFiles]);
 
   const handleCompile = useCallback(() => {
     if (!activeFile) return;

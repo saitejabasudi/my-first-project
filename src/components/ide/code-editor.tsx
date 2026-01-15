@@ -88,7 +88,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   const renderHighlightedCode = () => {
     const codeToRender = code + '\n'; // Add newline to ensure last line is rendered
     // Corrected Regex: handles strings, single-line comments, and multi-line comments.
-    const stringAndCommentRegex = /("(?:\\[\s\S]|[^"\\])*")|(\/\/[^\n]*)|\/\*[\s\S]*?\*\//g;
+    const stringAndCommentRegex = /(\/\*[\s\S]*?\*\/)|(\/\/[^\n]*)|("(?:\\[\s\S]|[^"\\])*")/g;
     
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;

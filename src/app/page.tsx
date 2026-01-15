@@ -129,7 +129,6 @@ export default function ProjectSelectionPage() {
          // Reset to default files if all are deleted
         const defaultFiles = mockFiles;
         localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(defaultFiles));
-        setProjects(defaultFiles);
         return defaultFiles;
       }
 
