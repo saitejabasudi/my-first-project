@@ -19,8 +19,8 @@ function lintJavaCode(code: string): string[] {
     const errors: string[] = [];
     if (!code) return errors;
     const lines = code.split('\n');
-    const braceStack: number[] = [];
-    const parenStack: number[] = [];
+    const braceStack: { char: string, line: number }[] = [];
+    const parenStack: { char: string, line: number }[] = [];
 
     lines.forEach((line, index) => {
         const lineNumber = index + 1;
@@ -56,24 +56,24 @@ function lintJavaCode(code: string): string[] {
         for (let i = 0; i < line.length; i++) {
             const char = line[i];
             if (char === '{') {
-                braceStack.push(lineNumber);
+                braceStack.push({ char, line: lineNumber });
             } else if (char === '}') {
-                if(braceStack.length === 0) errors.push(`Error at line ${lineNumber}: Extra closing brace.`);
+                if (braceStack.length === 0) errors.push(`Error at line ${lineNumber}: Extra closing brace '}'.`);
                 else braceStack.pop();
             } else if (char === '(') {
-                parenStack.push(lineNumber);
+                parenStack.push({ char, line: lineNumber });
             } else if (char === ')') {
-                if (parenStack.length === 0) errors.push(`Error at line ${lineNumber}: Extra closing parenthesis.`);
+                if (parenStack.length === 0) errors.push(`Error at line ${lineNumber}: Extra closing parenthesis ')'.`);
                 else parenStack.pop();
             }
         }
     });
     
-    braceStack.forEach(lineNumber => {
-        errors.push(`Error: Mismatched curly braces. Unclosed brace from line ${lineNumber}.`);
+    braceStack.forEach(brace => {
+        errors.push(`Error: Mismatched curly braces. Unclosed brace '{' from line ${brace.line}.`);
     });
-    parenStack.forEach(lineNumber => {
-        errors.push(`Error: Mismatched parentheses. Unclosed parenthesis from line ${lineNumber}.`);
+    parenStack.forEach(paren => {
+        errors.push(`Error: Mismatched parentheses. Unclosed parenthesis '(' from line ${paren.line}.`);
     });
 
     return errors;
@@ -162,38 +162,41 @@ export function IdeLayout() {
   }, [activeFile]);
 
   const handleFileSelect = useCallback((fileId: string) => {
-    router.push(`/ide?file=${fileId}`);
+    const fileToLoad = allFiles.find(f => f.id === fileId);
+    if(fileToLoad) {
+        setActiveFile(fileToLoad);
+        router.push(`/ide?file=${fileId}`, { scroll: false });
+    }
     setIsSheetOpen(false);
-  }, [router]);
+  }, [router, allFiles]);
 
   const handleFileClose = useCallback((fileIdToClose: string) => {
-    const filesAfterClose = allFiles.filter(f => f.id !== fileIdToClose);
-    
-    try {
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(filesAfterClose));
-    } catch(e) {
-        console.error("Failed to save updated projects to localStorage", e)
-    }
-
-    setAllFiles(filesAfterClose);
-
-    if (activeFile?.id === fileIdToClose) {
-        if (filesAfterClose.length > 0) {
-            const currentActiveIndex = allFiles.findIndex(f => f.id === activeFile?.id);
-            const newIndex = Math.max(0, Math.min(currentActiveIndex - 1, filesAfterClose.length - 1));
-            const newActiveFileId = filesAfterClose[newIndex].id;
-            router.replace(`/ide?file=${newActiveFileId}`);
-        } else {
-            // No files left, go to home and reset to default
-            try {
-                localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
-            } catch (error) {
-               console.error("Failed to save default project to localStorage", error);
-            }
-            router.push('/');
+    setAllFiles(currentFiles => {
+        const filesAfterClose = currentFiles.filter(f => f.id !== fileIdToClose);
+        
+        try {
+            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(filesAfterClose));
+        } catch(e) {
+            console.error("Failed to save updated projects to localStorage", e)
         }
-    }
-  }, [activeFile, router, allFiles]);
+
+        if (activeFile?.id === fileIdToClose) {
+            if (filesAfterClose.length > 0) {
+                const newActiveFile = filesAfterClose[0];
+                setActiveFile(newActiveFile);
+                router.replace(`/ide?file=${newActiveFile.id}`, { scroll: false });
+            } else {
+                try {
+                    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+                } catch (error) {
+                   console.error("Failed to save default project to localStorage", error);
+                }
+                router.push('/');
+            }
+        }
+        return filesAfterClose;
+    });
+  }, [activeFile, router]);
 
   const handleCompile = useCallback(() => {
     if (!activeFile) return;

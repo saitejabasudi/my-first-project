@@ -25,7 +25,26 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
-function SplashScreen({ progress }: { progress: number }) {
+function SplashScreen({ onFinished }: { onFinished: () => void }) {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          onFinished();
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 20);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [onFinished]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground font-body">
       <FullLogo />
@@ -38,42 +57,18 @@ function SplashScreen({ progress }: { progress: number }) {
 
 export default function ProjectSelectionPage() {
   const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
   const [isCreateProjectOpen, setCreateProjectOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [projects, setProjects] = useState<JavaFile[]>([]);
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          return 100;
-        }
-        return prev + 1;
-      });
-    }, 20);
-
-    const loadingTimeout = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-
-    return () => {
-      clearInterval(timer)
-      clearTimeout(loadingTimeout);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (loading) return;
-
     let storedProjects: JavaFile[] = [];
     try {
       const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
       if (storedProjectsJson) {
         const parsed = JSON.parse(storedProjectsJson);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
             storedProjects = parsed;
         }
       }
@@ -90,12 +85,14 @@ export default function ProjectSelectionPage() {
         }
     }
     setProjects(storedProjects);
-  }, [loading]);
+  }, []);
 
   const handleCreateProject = () => {
     if (!newProjectName.trim()) return;
     
-    const formattedName = newProjectName.trim().replace(/\s/g, '');
+    const formattedName = newProjectName.trim().replace(/[^a-zA-Z0-9]/g, '');
+    if (!formattedName) return;
+
     const newFile: JavaFile = {
       id: formattedName.toLowerCase() + '-' + Date.now(),
       name: `${formattedName}.java`,
@@ -126,9 +123,12 @@ export default function ProjectSelectionPage() {
       }
       
       if (updatedProjects.length === 0) {
-         // Reset to default files if all are deleted
-        const defaultFiles = mockFiles;
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(defaultFiles));
+         const defaultFiles = mockFiles;
+         try {
+            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(defaultFiles));
+         } catch (error) {
+             console.error("Failed to save default projects to localStorage", error);
+         }
         return defaultFiles;
       }
 
@@ -137,7 +137,7 @@ export default function ProjectSelectionPage() {
   };
   
   if (loading) {
-    return <SplashScreen progress={progress} />;
+    return <SplashScreen onFinished={() => setLoading(false)} />;
   }
 
   return (
@@ -195,7 +195,7 @@ export default function ProjectSelectionPage() {
         <div className="grid gap-4">
           {projects.map((file) => (
               <div key={file.id} className="relative group">
-                <Link href={`/ide?file=${file.id}`}>
+                <Link href={`/ide?file=${file.id}`} passHref>
                     <Card className="hover:border-primary transition-colors cursor-pointer bg-card">
                     <CardContent className="pt-6 flex items-center justify-between">
                         <div className="flex items-start gap-4">
@@ -213,7 +213,7 @@ export default function ProjectSelectionPage() {
                 <Button
                     variant="destructive"
                     size="icon"
-                    className="absolute top-1/2 right-4 -translate-y-1/2 h-10 w-10 text-destructive-foreground opacity-50 group-hover:opacity-100"
+                    className="absolute top-1/2 right-4 -translate-y-1/2 h-10 w-10 text-destructive-foreground opacity-0 group-hover:opacity-100 md:opacity-50"
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();

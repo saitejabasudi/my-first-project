@@ -1,3 +1,4 @@
+
 import { Logo } from './logo';
 import { cn } from '@/lib/utils';
 
@@ -8,7 +9,7 @@ export function FullLogo({ className }: { className?: string }) {
             <Logo className="h-16 w-16 text-primary" />
         </div>
         <h1 className="text-3xl font-bold text-primary font-headline">
-            Java Studio Pro
+            JavaDroid IDE
         </h1>
     </div>
   );

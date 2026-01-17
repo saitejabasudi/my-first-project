@@ -68,14 +68,13 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
       }, 0);
     }
   };
-
+  
   const highlightSegment = (segment: string) => {
     const keywordRegex = /\b(public|class|static|void|main|String|System|out|println|if|else|for|while|switch|case|break|continue|return|int|double|boolean|char|new|true|false|null|import|package|extends|implements|super|this|throw|throws|try|catch|finally|abstract|final|private|protected|synchronized|volatile|transient|native|strictfp|assert|enum)\b/g;
     return segment.split(keywordRegex).map((part, index) => {
       if (index % 2 === 1) { // It's a keyword
         return <span key={index} className="text-syntax-keyword">{part}</span>;
       }
-      // Not a keyword, check for braces
       return part.split(/([{}()[\],.;])/g).map((subPart, subIndex) => {
         if (subPart.match(/[{}()[\],.;]/)) {
           return <span key={`${index}-${subIndex}`} className="text-syntax-highlight">{subPart}</span>;
@@ -86,8 +85,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   };
 
   const renderHighlightedCode = () => {
-    const codeToRender = code + '\n'; // Add newline to ensure last line is rendered
-    // Corrected Regex: handles strings, single-line comments, and multi-line comments.
+    const codeToRender = code + '\n';
     const stringAndCommentRegex = /(\/\*[\s\S]*?\*\/)|(\/\/[^\n]*)|("(?:\\[\s\S]|[^"\\])*")/g;
     
     const parts: React.ReactNode[] = [];

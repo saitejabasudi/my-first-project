@@ -27,7 +27,7 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 
 
 export default function SettingsPage() {
-  const privacyPolicy = "Java Studio Pro is an offline Java coding application. It does not collect, store, or share any personal user data. All code and files remain on the user’s device. No internet access, tracking, or third-party services are used.";
+  const privacyPolicy = "JavaDroid IDE is an offline Java coding application. It does not collect, store, or share any personal user data. All code and files remain on the user’s device. No internet access, tracking, or third-party services are used.";
 
   return (
     <div className="min-h-screen bg-background text-foreground font-body">

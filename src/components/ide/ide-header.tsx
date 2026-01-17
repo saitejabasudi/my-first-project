@@ -1,3 +1,4 @@
+
 "use client";
 import { Button } from '@/components/ui/button';
 import type { JavaFile } from '@/lib/mock-files';
@@ -33,7 +34,7 @@ export function IdeHeader({ activeFile, onRun, isCompiling, mobileSidebar }: Ide
       <div className="flex items-center gap-2">
         <Button variant="ghost" onClick={onRun} disabled={isCompiling}>
             <Play className="h-5 w-5 mr-2" />
-            Run
+            {isCompiling ? 'Running...' : 'Run'}
         </Button>
         <div className="md:hidden">
             {mobileSidebar}
