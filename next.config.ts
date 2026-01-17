@@ -35,13 +35,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-   webpack: (config) => {
-    config.externals.push({
-      'sharp': 'commonjs sharp',
-      'onnxruntime-node': 'commonjs onnxruntime-node'
-    })
-    return config
-  },
 };
 
 export default withPWA(nextConfig);
