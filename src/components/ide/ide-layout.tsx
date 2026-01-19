@@ -13,49 +13,42 @@ import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { InputDialog } from './input-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
-function lintJavaCode(code: string): string[] {
+// Improved linter to validate basic Java structure
+function lintJavaCode(code: string, filename: string): string[] {
     const errors: string[] = [];
-    if (!code) return errors;
+    if (!code) {
+        errors.push("Error: Source code is empty.");
+        return errors;
+    }
+
+    // 1. Check for public class matching filename
+    const className = filename.replace('.java', '');
+    const classRegex = new RegExp(`public\\s+class\\s+${className}`);
+    if (!classRegex.test(code)) {
+        errors.push(`Error: Missing 'public class ${className}'. The public class name must match the file name.`);
+    }
+
+    // 2. Check for main method
+    const mainMethodRegex = /public\s+static\s+void\s+main\s*\(\s*String\s*\[\s*]\s*args\s*\)/;
+    if (!mainMethodRegex.test(code)) {
+        errors.push(`Error: Missing 'public static void main(String[] args)' method entry point.`);
+    }
+
     const lines = code.split('\n');
     const braceStack: { char: string, line: number }[] = [];
     const parenStack: { char: string, line: number }[] = [];
 
+    // 3. Check for balanced braces and parentheses
     lines.forEach((line, index) => {
         const lineNumber = index + 1;
-        const trimmedLine = line.trim();
-
-        if (
-            trimmedLine.length > 0 &&
-            !trimmedLine.endsWith(';') &&
-            !trimmedLine.endsWith('{') &&
-            !trimmedLine.endsWith('}') &&
-            !trimmedLine.startsWith('//') &&
-            !trimmedLine.startsWith('/*') &&
-            !trimmedLine.endsWith('*/') &&
-            !trimmedLine.startsWith('*') &&
-            !trimmedLine.startsWith('import ') &&
-            !trimmedLine.startsWith('package ') &&
-            !/^\s*@(Override|Deprecated|SuppressWarnings|FunctionalInterface)/.test(trimmedLine) &&
-            !/^\s*(public|private|protected|static|final|abstract|class|interface|enum|@interface|implements|extends)/.test(trimmedLine) &&
-            !line.match(/^\s*(public|private|protected|static|final|abstract|synchronized|native|strictfp)?\s*[\w<>[\].,\s]+\s+\w+\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*}/) &&
-            !line.match(/^\s*for\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*if\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*else(\s*if\s*\(.*\))?\s*\{?$/) &&
-            !line.match(/^\s*while\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*switch\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*try(\s*\{?|.*)?$/) &&
-            !line.match(/^\s*catch\s*\(.*\)\s*\{?$/) &&
-            !line.match(/^\s*finally\s*\{?$/)
-        ) {
-            errors.push(`Error at line ${lineNumber}: Missing semicolon or incomplete statement.`);
-        }
-        
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
+        // Ignore comments for brace/paren checking
+        const codeLine = line.split('//')[0];
+        for (let i = 0; i < codeLine.length; i++) {
+            const char = codeLine[i];
             if (char === '{') {
                 braceStack.push({ char, line: lineNumber });
             } else if (char === '}') {
@@ -71,10 +64,10 @@ function lintJavaCode(code: string): string[] {
     });
     
     braceStack.forEach(brace => {
-        errors.push(`Error: Mismatched curly braces. Unclosed brace '{' from line ${brace.line}.`);
+        errors.push(`Error on line ${brace.line}: Mismatched curly braces. Unclosed brace '{' found.`);
     });
     parenStack.forEach(paren => {
-        errors.push(`Error: Mismatched parentheses. Unclosed parenthesis '(' from line ${paren.line}.`);
+        errors.push(`Error on line ${paren.line}: Mismatched parentheses. Unclosed parenthesis '(' found.`);
     });
 
     return errors;
@@ -84,7 +77,12 @@ export function IdeLayout() {
   const [allFiles, setAllFiles] = useState<JavaFile[]>([]);
   const [activeFile, setActiveFile] = useState<JavaFile | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
-  const [output, setOutput] = useState<string[]>([]);
+  
+  // New states for separate output panels
+  const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
+  const [errorOutput, setErrorOutput] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<'console' | 'problems'>('console');
+  
   const [showOutput, setShowOutput] = useState(false);
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -200,40 +198,46 @@ export function IdeLayout() {
     });
   }, [activeFile, router]);
 
+  // Updated execution logic
   const runProgram = useCallback((userInputs?: string[]) => {
     if (!activeFile) return;
 
     setIsCompiling(true);
     setShowOutput(true);
-    setOutput([`> Compiling ${activeFile.name}...`]);
+    // Clear previous outputs
+    setConsoleOutput([`> Validating and compiling ${activeFile.name}...`]);
+    setErrorOutput([]);
 
     setTimeout(() => {
-      const errors = lintJavaCode(activeFile.content);
-      let finalOutput: string[];
+      // Pass filename to linter for more accurate validation
+      const errors = lintJavaCode(activeFile.content, activeFile.name);
 
       if (errors.length > 0) {
-        finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation failed with errors:', ...errors];
+        setConsoleOutput(prev => [...prev, 'Compilation failed. See Problems tab for details.']);
+        setErrorOutput(errors);
+        setActiveTab('problems'); // Switch to problems tab automatically
         toast({
           variant: 'destructive',
           title: 'Compilation Failed',
-          description: `Please fix the errors in ${activeFile.name}.`,
+          description: `Found ${errors.length} error(s) in ${activeFile.name}.`,
         });
       } else {
         let processedOutput = activeFile.output;
-        if (userInputs) {
+        if (userInputs && activeFile.isInteractive) {
             userInputs.forEach((input, index) => {
                 processedOutput = processedOutput.replace(new RegExp(`\\{input${index}\\}`, 'g'), input);
             });
         }
-        finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation successful.', '> Running...', ...processedOutput.split('\n'), '\nExecution finished.'];
+        const finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation successful.', '> Running...', ...processedOutput.split('\n'), '\nExecution finished.'];
+        setConsoleOutput(finalOutput);
+        setActiveTab('console'); // Switch to console tab on success
         toast({
           title: 'Execution Complete',
           description: `${activeFile.name} ran successfully.`,
         });
       }
-      setOutput(finalOutput);
       setIsCompiling(false);
-    }, 1500);
+    }, 1000); // Reduced delay for a snappier feel
   }, [activeFile, toast]);
 
   const handleRunClick = useCallback(() => {
@@ -306,20 +310,33 @@ export function IdeLayout() {
       )}
 
       {showOutput && (
-          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center">
+          <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center p-4">
               <div className="w-full max-w-4xl h-3/4 flex flex-col bg-card rounded-lg shadow-2xl">
-                <div className="flex items-center justify-between p-2 border-b border-border flex-shrink-0">
-                    <span className="text-sm font-medium px-2">Output</span>
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOutput([])} disabled={isCompiling}>
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowOutput(false)}>
-                            <X className="h-4 w-4" />
-                        </Button>
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'console' | 'problems')} className="w-full flex flex-col h-full">
+                    <div className="flex items-center justify-between p-2 border-b border-border flex-shrink-0">
+                        <TabsList className="grid w-auto grid-cols-2">
+                            <TabsTrigger value="console">Console</TabsTrigger>
+                            <TabsTrigger value="problems">
+                                Problems
+                                {errorOutput.length > 0 && <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-destructive rounded-full">{errorOutput.length}</span>}
+                            </TabsTrigger>
+                        </TabsList>
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setConsoleOutput([]); setErrorOutput([]); }} disabled={isCompiling} aria-label="Clear output">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowOutput(false)} aria-label="Close output">
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
-                </div>
-                <TerminalView output={output} />
+                    <TabsContent value="console" className="flex-1 mt-0 overflow-hidden ring-offset-0 focus-visible:ring-0">
+                        <TerminalView output={consoleOutput} />
+                    </TabsContent>
+                    <TabsContent value="problems" className="flex-1 mt-0 overflow-hidden ring-offset-0 focus-visible:ring-0">
+                        <TerminalView output={errorOutput} />
+                    </TabsContent>
+                </Tabs>
               </div>
           </div>
         )}
