@@ -105,7 +105,6 @@ export default function ProjectSelectionPage() {
       id: formattedName.toLowerCase() + '-' + Date.now(),
       name: `${formattedName}.java`,
       content: `public class ${formattedName} {\n    public static void main(String[] args) {\n        System.out.println("Hello from ${formattedName}!");\n    }\n}`,
-      output: `Hello from ${formattedName}!`,
     };
 
     const updatedProjects = [...projects, newFile];
