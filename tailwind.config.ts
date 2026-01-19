@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -51,6 +52,7 @@ export default {
         'syntax-highlight': 'hsl(var(--syntax-highlight))',
         'syntax-string': 'hsl(var(--syntax-string))',
         'syntax-keyword': 'hsl(var(--syntax-keyword))',
+        'syntax-comment': 'hsl(var(--syntax-comment))',
         chart: {
           '1': 'hsl(var(--chart-1))',
           '2': 'hsl(var(--chart-2))',

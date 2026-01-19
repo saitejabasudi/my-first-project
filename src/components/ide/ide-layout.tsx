@@ -170,19 +170,19 @@ export function IdeLayout() {
     setIsSheetOpen(false);
   }, [router, allFiles]);
 
-  const handleFileClose = useCallback((fileIdToClose: string) => {
+  const handleFileDelete = useCallback((fileIdToDelete: string) => {
     setAllFiles(currentFiles => {
-        const filesAfterClose = currentFiles.filter(f => f.id !== fileIdToClose);
+        const filesAfterDelete = currentFiles.filter(f => f.id !== fileIdToDelete);
         
         try {
-            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(filesAfterClose));
+            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(filesAfterDelete));
         } catch(e) {
             console.error("Failed to save updated projects to localStorage", e)
         }
 
-        if (activeFile?.id === fileIdToClose) {
-            if (filesAfterClose.length > 0) {
-                const newActiveFile = filesAfterClose[0];
+        if (activeFile?.id === fileIdToDelete) {
+            if (filesAfterDelete.length > 0) {
+                const newActiveFile = filesAfterDelete[0];
                 setActiveFile(newActiveFile);
                 router.replace(`/ide?file=${newActiveFile.id}`, { scroll: false });
             } else {
@@ -194,7 +194,7 @@ export function IdeLayout() {
                 router.push('/');
             }
         }
-        return filesAfterClose;
+        return filesAfterDelete;
     });
   }, [activeFile, router]);
 
@@ -275,7 +275,7 @@ export function IdeLayout() {
               files={allFiles}
               activeFileId={activeFile.id}
               onFileSelect={handleFileSelect}
-              onFileClose={handleFileClose}
+              onFileDelete={handleFileDelete}
             />
         </SheetContent>
     </Sheet>
@@ -290,7 +290,7 @@ export function IdeLayout() {
             files={allFiles}
             activeFileId={activeFile.id}
             onFileSelect={handleFileSelect}
-            onFileClose={handleFileClose}
+            onFileDelete={handleFileDelete}
           />
         </div>
         <div className="flex flex-1 flex-col overflow-auto">

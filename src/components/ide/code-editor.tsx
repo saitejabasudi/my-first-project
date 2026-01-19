@@ -102,7 +102,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
       if (matchedPart.startsWith('"')) {
           parts.push(<span key={`string-${match.index}`} className="text-syntax-string">{matchedPart}</span>);
       } else {
-          parts.push(<span key={`comment-${match.index}`} className="text-green-500">{matchedPart}</span>);
+          parts.push(<span key={`comment-${match.index}`} className="text-syntax-comment">{matchedPart}</span>);
       }
 
       lastIndex = match.index + matchedPart.length;
