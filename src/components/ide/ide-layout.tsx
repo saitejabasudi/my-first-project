@@ -12,7 +12,6 @@ import { X, Trash2, Menu } from 'lucide-react';
 import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { InputDialog } from './input-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
@@ -78,7 +77,6 @@ export function IdeLayout() {
   const [activeFile, setActiveFile] = useState<JavaFile | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   
-  // New states for separate output panels
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [errorOutput, setErrorOutput] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'console' | 'problems'>('console');
@@ -89,7 +87,6 @@ export function IdeLayout() {
   const router = useRouter();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showInputDialog, setShowInputDialog] = useState(false);
 
   useEffect(() => {
     let files: JavaFile[] = [];
@@ -198,8 +195,7 @@ export function IdeLayout() {
     });
   }, [activeFile, router]);
 
-  // Updated execution logic
-  const runProgram = useCallback((userInputs?: string[]) => {
+  const runProgram = useCallback(() => {
     if (!activeFile) return;
 
     setIsCompiling(true);
@@ -222,38 +218,35 @@ export function IdeLayout() {
           description: `Found ${errors.length} error(s) in ${activeFile.name}.`,
         });
       } else {
-        let processedOutput = activeFile.output;
-        if (userInputs && activeFile.isInteractive) {
-            userInputs.forEach((input, index) => {
-                processedOutput = processedOutput.replace(new RegExp(`\\{input${index}\\}`, 'g'), input);
-            });
+        // --- NEW DYNAMIC EXECUTION SIMULATION ---
+        const simulatedOutput: string[] = [];
+        // Basic simulation: find all System.out.println("...string literal...") statements.
+        // This is a simple simulation and does not handle loops, variables, or complex expressions.
+        const printlnRegex = /System\.out\.println\(\s*"(.*?)"\s*\);/g;
+        
+        let match;
+        while ((match = printlnRegex.exec(activeFile.content)) !== null) {
+            simulatedOutput.push(match[1]);
         }
-        const finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation successful.', '> Running...', ...processedOutput.split('\n'), '\nExecution finished.'];
+        
+        const finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation successful.', '> Running...', ...simulatedOutput, '\nExecution finished.'];
+        
+        if (simulatedOutput.length === 0) {
+            finalOutput.splice(3, 0, '(Program ran with no output to console)');
+        }
+        
         setConsoleOutput(finalOutput);
         setActiveTab('console'); // Switch to console tab on success
         toast({
           title: 'Execution Complete',
           description: `${activeFile.name} ran successfully.`,
         });
+        // --- END NEW LOGIC ---
       }
       setIsCompiling(false);
     }, 1000); // Reduced delay for a snappier feel
   }, [activeFile, toast]);
 
-  const handleRunClick = useCallback(() => {
-    if (!activeFile) return;
-    if (activeFile.isInteractive) {
-        setShowInputDialog(true);
-    } else {
-        runProgram();
-    }
-  }, [activeFile, runProgram]);
-
-  const handleInteractiveSubmit = useCallback((values: string[]) => {
-    setShowInputDialog(false);
-    runProgram(values);
-  }, [runProgram]);
-  
   if (!activeFile || !isLoaded) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
@@ -283,7 +276,7 @@ export function IdeLayout() {
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
-      <IdeHeader activeFile={activeFile} onRun={handleRunClick} isCompiling={isCompiling} mobileSidebar={renderMobileSidebar()} />
+      <IdeHeader activeFile={activeFile} onRun={runProgram} isCompiling={isCompiling} mobileSidebar={renderMobileSidebar()} />
       <main className="flex flex-1 overflow-hidden">
         <div className="hidden md:block md:w-64 flex-shrink-0 bg-card border-r">
           <FileExplorer
@@ -299,15 +292,6 @@ export function IdeLayout() {
           </div>
         </div>
       </main>
-
-      {showInputDialog && activeFile.inputs && (
-        <InputDialog
-            isOpen={showInputDialog}
-            onClose={() => setShowInputDialog(false)}
-            onSubmit={handleInteractiveSubmit}
-            inputs={activeFile.inputs}
-        />
-      )}
 
       {showOutput && (
           <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center p-4">
