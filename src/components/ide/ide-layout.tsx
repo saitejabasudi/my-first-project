@@ -200,51 +200,95 @@ export function IdeLayout() {
 
     setIsCompiling(true);
     setShowOutput(true);
-    // Clear previous outputs
     setConsoleOutput([`> Validating and compiling ${activeFile.name}...`]);
     setErrorOutput([]);
 
     setTimeout(() => {
-      // Pass filename to linter for more accurate validation
-      const errors = lintJavaCode(activeFile.content, activeFile.name);
+        const errors = lintJavaCode(activeFile.content, activeFile.name);
 
-      if (errors.length > 0) {
-        setConsoleOutput(prev => [...prev, 'Compilation failed. See Problems tab for details.']);
-        setErrorOutput(errors);
-        setActiveTab('problems'); // Switch to problems tab automatically
-        toast({
-          variant: 'destructive',
-          title: 'Compilation Failed',
-          description: `Found ${errors.length} error(s) in ${activeFile.name}.`,
-        });
-      } else {
-        // --- NEW DYNAMIC EXECUTION SIMULATION ---
-        const simulatedOutput: string[] = [];
-        // Basic simulation: find all System.out.println("...string literal...") statements.
-        // This is a simple simulation and does not handle loops, variables, or complex expressions.
-        const printlnRegex = /System\.out\.println\(\s*"(.*?)"\s*\);/g;
-        
-        let match;
-        while ((match = printlnRegex.exec(activeFile.content)) !== null) {
-            simulatedOutput.push(match[1]);
+        if (errors.length > 0) {
+            setConsoleOutput(prev => [...prev, 'Compilation failed. See Problems tab for details.']);
+            setErrorOutput(errors);
+            setActiveTab('problems');
+            toast({
+                variant: 'destructive',
+                title: 'Compilation Failed',
+                description: `Found ${errors.length} error(s) in ${activeFile.name}.`,
+            });
+        } else {
+            const mainMethodRegex = /public\s+static\s+void\s+main\s*\([^)]*\)\s*\{([\s\S]*)\}/;
+            const mainMatch = activeFile.content.match(mainMethodRegex);
+            let simulatedOutput: string[] = [];
+            let runtimeErrors: string[] = [];
+
+            if (mainMatch) {
+                const mainBody = mainMatch[1];
+                
+                if (mainBody.includes('Scanner')) {
+                    runtimeErrors.push("Runtime Error: Interactive input with Scanner is not supported in this version.");
+                } else {
+                    try {
+                        let jsCode = mainBody
+                            .replace(/System\.out\.println\((.*?)\);/g, 'mock_println($1);')
+                            .replace(/System\.out\.print\((.*?)\);/g, 'mock_print($1);')
+                            .replace(/String\[\]/g, 'var')
+                            .replace(/String\s/g, 'let ')
+                            .replace(/int\s/g, 'let ')
+                            .replace(/double\s/g, 'let ')
+                            .replace(/float\s/g, 'let ')
+                            .replace(/boolean\s/g, 'let ');
+                        
+                        let outputBuffer: string[] = [];
+                        let lineBuffer = '';
+
+                        const mock_println = (val: any = '') => {
+                            outputBuffer.push(lineBuffer + (val?.toString() ?? ''));
+                            lineBuffer = '';
+                        };
+
+                        const mock_print = (val: any = '') => {
+                            lineBuffer += (val?.toString() ?? '');
+                        };
+                        
+                        const sandboxedExecutor = new Function('mock_println', 'mock_print', jsCode);
+                        sandboxedExecutor(mock_println, mock_print);
+
+                        if (lineBuffer) {
+                            outputBuffer.push(lineBuffer);
+                        }
+                        
+                        simulatedOutput = outputBuffer;
+
+                    } catch (e: any) {
+                        runtimeErrors.push(`Runtime Error: ${e.message}`);
+                    }
+                }
+            }
+
+            if (runtimeErrors.length > 0) {
+                setErrorOutput(runtimeErrors);
+                setActiveTab('problems');
+                toast({
+                    variant: 'destructive',
+                    title: 'Runtime Error',
+                    description: `Execution failed for ${activeFile.name}.`,
+                });
+
+            } else {
+                const finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation successful.', '> Running...', ...simulatedOutput, '\nExecution finished.'];
+                if (simulatedOutput.length === 0) {
+                    finalOutput.splice(3, 0, '(Program ran with no output to console)');
+                }
+                setConsoleOutput(finalOutput);
+                setActiveTab('console');
+                toast({
+                    title: 'Execution Complete',
+                    description: `${activeFile.name} ran successfully.`,
+                });
+            }
         }
-        
-        const finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation successful.', '> Running...', ...simulatedOutput, '\nExecution finished.'];
-        
-        if (simulatedOutput.length === 0) {
-            finalOutput.splice(3, 0, '(Program ran with no output to console)');
-        }
-        
-        setConsoleOutput(finalOutput);
-        setActiveTab('console'); // Switch to console tab on success
-        toast({
-          title: 'Execution Complete',
-          description: `${activeFile.name} ran successfully.`,
-        });
-        // --- END NEW LOGIC ---
-      }
-      setIsCompiling(false);
-    }, 1000); // Reduced delay for a snappier feel
+        setIsCompiling(false);
+    }, 1000);
   }, [activeFile, toast]);
 
   if (!activeFile || !isLoaded) {

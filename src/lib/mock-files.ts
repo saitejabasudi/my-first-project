@@ -13,6 +13,7 @@ export const mockFiles: JavaFile[] = [
     public static void main(String[] args) {
         System.out.println("Hello from JavaDroid IDE!");
         System.out.println("You can edit this code and run it.");
+        System.out.println("Try writing your own code with variables and loops.");
     }
 }`,
   },
@@ -21,23 +22,16 @@ export const mockFiles: JavaFile[] = [
     name: 'Calculator.java',
     content: `public class Calculator {
     public static void main(String[] args) {
-        // This is a simple simulation.
-        // Variables and calculations are not yet supported.
+        // This program now performs real calculations.
         int a = 10;
         int b = 5;
-        System.out.println("Sum: 15");
-        System.out.println("Difference: 5");
-    }
-}`,
-  },
-  {
-    id: 'user-input-java-3',
-    name: 'UserInput.java',
-    content: `public class UserInput {
-    public static void main(String[] args) {
-        // The current version of the IDE doesn't support Scanner for input.
-        // It can only display output from string literals.
-        System.out.println("This is a placeholder for a program that would take user input.");
+        System.out.println("Demonstrating variables and arithmetic:");
+        System.out.println("a = " + a);
+        System.out.println("b = " + b);
+        System.out.println("a + b = " + (a + b));
+        System.out.println("a - b = " + (a - b));
+        System.out.println("a * b = " + (a * b));
+        System.out.println("a / b = " + (a / b));
     }
 }`,
   },
@@ -46,13 +40,15 @@ export const mockFiles: JavaFile[] = [
     name: 'StarPattern.java',
     content: `public class StarPattern {
     public static void main(String[] args) {
-        // This is a simple simulation.
-        // Loops are not yet supported in the output.
-        System.out.println("*");
-        System.out.println("* *");
-        System.out.println("* * *");
-        System.out.println("* * * *");
-        System.out.println("* * * * *");
+        // This program now uses a real for-loop.
+        System.out.println("A right-angled triangle of stars:");
+        for (int i = 1; i <= 5; i++) {
+            String line = "";
+            for (int j = 1; j <= i; j++) {
+                line += "* ";
+            }
+            System.out.println(line);
+        }
     }
 }`,
   }
