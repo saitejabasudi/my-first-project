@@ -54,5 +54,24 @@ public class UserInput {
         { label: 'Your Name', type: 'text' },
         { label: 'Your Age', type: 'number' },
     ],
+  },
+  {
+    id: 'star-pattern-java-4',
+    name: 'StarPattern.java',
+    content: `public class StarPattern {
+    public static void main(String[] args) {
+        int rows = 5;
+        // loop to iterate for the given number of rows
+        for (int i = 1; i <= rows; ++i) {
+            // loop to print the stars in each row
+            for (int j = 1; j <= i; ++j) {
+                System.out.print("* ");
+            }
+            // moves to the next line
+            System.out.println();
+        }
+    }
+}`,
+    output: `* \n* * \n* * * \n* * * * \n* * * * * `,
   }
 ];

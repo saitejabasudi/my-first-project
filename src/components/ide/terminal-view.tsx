@@ -7,22 +7,30 @@ type TerminalViewProps = {
 };
 
 export function TerminalView({ output }: TerminalViewProps) {
-  const endRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Scroll to the bottom whenever output changes
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
   }, [output]);
+
+  // A simple function to render error lines with a different color
+  const renderOutput = () => {
+    return output.map((line, index) => {
+        if (line.toLowerCase().startsWith('error')) {
+            return <span key={index} className="text-destructive">{line}<br/></span>;
+        }
+        return <span key={index}>{line}<br/></span>;
+    });
+  };
 
   return (
     <div className="flex h-full flex-col bg-card">
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <pre className="font-code text-sm text-muted-foreground whitespace-pre-wrap p-4">
-          {output.map((line, index) => (
-            <div key={index} className={line.toLowerCase().startsWith('error') ? 'text-destructive' : ''}>
-              {line}
-            </div>
-          ))}
-          <div ref={endRef} />
+            {renderOutput()}
         </pre>
       </ScrollArea>
     </div>
