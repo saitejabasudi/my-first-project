@@ -216,14 +216,36 @@ export function IdeLayout() {
                 description: `Found ${errors.length} error(s) in ${activeFile.name}.`,
             });
         } else {
-            const mainMethodRegex = /public\s+static\s+void\s+main\s*\([^)]*\)\s*\{([\s\S]*)\}/;
-            const mainMatch = activeFile.content.match(mainMethodRegex);
-            let simulatedOutput: string[] = [];
-            let runtimeErrors: string[] = [];
+            let mainBody = '';
+            const runtimeErrors: string[] = [];
+            const mainSignatureRegex = /public\s+static\s+void\s+main\s*\([^)]*\)\s*\{/;
+            const mainSignatureMatch = activeFile.content.match(mainSignatureRegex);
 
-            if (mainMatch) {
-                const mainBody = mainMatch[1];
-                
+            if (mainSignatureMatch && typeof mainSignatureMatch.index === 'number') {
+                const code = activeFile.content;
+                const startIndex = mainSignatureMatch.index + mainSignatureMatch[0].length;
+                let braceCount = 1;
+                let endIndex = -1;
+
+                for (let i = startIndex; i < code.length; i++) {
+                    if (code[i] === '{') braceCount++;
+                    if (code[i] === '}') braceCount--;
+                    if (braceCount === 0) {
+                        endIndex = i;
+                        break;
+                    }
+                }
+
+                if (endIndex !== -1) {
+                    mainBody = code.substring(startIndex, endIndex);
+                } else {
+                    runtimeErrors.push("Runtime Error: Could not find closing brace for main method.");
+                }
+            }
+
+            let simulatedOutput: string[] = [];
+
+            if (mainBody && runtimeErrors.length === 0) {
                 if (mainBody.includes('Scanner')) {
                     runtimeErrors.push("Runtime Error: Interactive input with Scanner is not supported in this version.");
                 } else {
@@ -273,7 +295,6 @@ export function IdeLayout() {
                     title: 'Runtime Error',
                     description: `Execution failed for ${activeFile.name}.`,
                 });
-
             } else {
                 const finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation successful.', '> Running...', ...simulatedOutput, '\nExecution finished.'];
                 if (simulatedOutput.length === 0) {
