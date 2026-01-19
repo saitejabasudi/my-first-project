@@ -72,6 +72,6 @@ public class UserInput {
         }
     }
 }`,
-    output: `* \n* * \n* * * \n* * * * \n* * * * * `,
+    output: `* \n* * \n* * * \n* * * * \n* * * * * \n`,
   }
 ];

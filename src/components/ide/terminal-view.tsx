@@ -16,22 +16,19 @@ export function TerminalView({ output }: TerminalViewProps) {
     }
   }, [output]);
 
-  // A simple function to render error lines with a different color
-  const renderOutput = () => {
-    return output.map((line, index) => {
-        if (line.toLowerCase().startsWith('error')) {
-            return <span key={index} className="text-destructive">{line}<br/></span>;
-        }
-        return <span key={index}>{line}<br/></span>;
-    });
-  };
-
   return (
     <div className="flex h-full flex-col bg-card">
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
-        <pre className="font-code text-sm text-muted-foreground whitespace-pre-wrap p-4">
-            {renderOutput()}
-        </pre>
+        <div className="font-code text-sm text-muted-foreground whitespace-pre-wrap p-4">
+            {output.map((line, index) => {
+                const isError = line.toLowerCase().startsWith('error');
+                return (
+                    <div key={index} className={isError ? 'text-destructive' : ''}>
+                        {line || '\u00A0'} {/* Render a non-breaking space for empty lines to preserve them */}
+                    </div>
+                );
+            })}
+        </div>
       </ScrollArea>
     </div>
   );
