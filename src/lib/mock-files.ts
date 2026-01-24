@@ -69,5 +69,33 @@ public class DataStructures {
         System.out.println("HashMap size: " + fruitPrices.size());
     }
 }`,
+  },
+  {
+    id: 'libraries-demo-4',
+    name: 'LibrariesDemo.java',
+    content: `import java.util.Random;
+import java.util.Date;
+import java.math.BigDecimal;
+
+public class LibrariesDemo {
+    public static void main(String[] args) {
+        System.out.println("--- Demonstrating Standard Libraries ---");
+        
+        System.out.println("\\n1. java.util.Random");
+        Random rand = new Random();
+        int randomNumber = rand.nextInt(100); // A number between 0 and 99
+        System.out.println("A random number between 0 and 99: " + randomNumber);
+        
+        System.out.println("\\n2. java.util.Date");
+        Date now = new Date();
+        System.out.println("Current date and time: " + now.toString());
+
+        System.out.println("\\n3. java.math.BigDecimal");
+        BigDecimal num1 = new BigDecimal("10.5");
+        BigDecimal num2 = new BigDecimal("2.5");
+        BigDecimal sum = num1.add(num2);
+        System.out.println("Sum of 10.5 and 2.5 is: " + sum);
+    }
+}`
   }
 ];

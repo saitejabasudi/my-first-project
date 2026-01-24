@@ -59,14 +59,14 @@ function lintJavaCode(code: string, filename: string): string[] {
     braceStack.forEach(brace => errors.push(`Error on line ${brace.line}: Mismatched curly braces. Unclosed brace '{' found.`));
     parenStack.forEach(paren => errors.push(`Error on line ${paren.line}: Mismatched parentheses. Unclosed parenthesis '(' found.`));
 
-    const importRegex = /^\s*import\s+([a-zA-Z0-9_]+\.)+[a-zA-Z0-9_*]+;/gm;
+    const importRegex = /^\s*import\s+([a-zA-Z0-9_.*]+);/gm;
     let match;
     while ((match = importRegex.exec(code)) !== null) {
-        const importStatement = match[0];
-        if (!importStatement.includes('import java.') && !importStatement.includes('import javax.')) {
-            const line = code.substring(0, match.index).split('\n').length;
-            errors.push(`Error at line ${line}: Unsupported import '${match[0]}'. Only standard java.* and javax.* libraries are supported.`);
-        }
+      const fullImport = match[1];
+      if (!fullImport.startsWith('java.') && !fullImport.startsWith('javax.')) {
+        const line = code.substring(0, match.index).split('\n').length;
+        errors.push(`Error at line ${line}: Unsupported import 'import ${fullImport};'. Only standard java.* and javax.* libraries are supported.`);
+      }
     }
 
     return errors;
@@ -187,6 +187,7 @@ export function IdeLayout() {
                 setActiveFile(newActiveFile);
                 router.replace(`/ide?file=${newActiveFile.id}`, { scroll: false });
             } else {
+                setActiveFile(null); // Explicitly clear the active file
                 router.push('/');
             }
         }
@@ -246,7 +247,15 @@ export function IdeLayout() {
         class HashMap extends Map { constructor() { super(); } put(key, value) { this.set(key, value); return value; } isEmpty() { return this.size === 0; } containsKey(key) { return this.has(key); } remove(key) { const v = this.get(key); this.delete(key); return v; } clear() { super.clear(); } values() { return Array.from(super.values()); } keySet() { return Array.from(this.keys()); } toString() { let parts = []; for (let [key, value] of this.entries()) { parts.push(key + '=' + value); } return '{' + parts.join(', ') + '}';} }
         let __scanner_inputs__ = []; let __scanner_cursor__ = 0; function __init_scanner__(inputs) { __scanner_inputs__ = inputs.flatMap(i => i.split(/\\s+|\\r?\\n/)).filter(Boolean); __scanner_cursor__ = 0; }
         class Scanner { constructor(source) { if (source !== System.in) throw new Error("Scanner can only be used with System.in."); } nextLine() { return __scanner_inputs__[__scanner_cursor__++] || ""; } nextInt() { return parseInt(this.nextLine(), 10) || 0; } nextDouble() { return parseFloat(this.nextLine()) || 0.0; } next() { return this.nextLine(); } hasNext() { return __scanner_cursor__ < __scanner_inputs__.length; } close() {} }
-        const System = { in: 'System.in' };
+        const System = { in: 'System.in', currentTimeMillis: () => Date.now() };
+
+        // New Library Shims
+        const MathContext = {}; // Dummy object for BigDecimal syntax
+        class BigDecimal { constructor(val) { this.value = Number(val); } add(other) { return new BigDecimal(this.value + other.value); } subtract(other) { return new BigDecimal(this.value - other.value); } multiply(other) { return new BigDecimal(this.value * other.value); } divide(other, scale, roundingMode) { return new BigDecimal(this.value / other.value); } toString() { return this.value.toString(); } }
+        class BigInteger { constructor(val) { try { this.value = BigInt(val); } catch(e) { this.value = BigInt(0); } } add(other) { return new BigInteger(this.value + other.value); } subtract(other) { return new BigInteger(this.value - other.value); } multiply(other) { return new BigInteger(this.value * other.value); } divide(other) { return new BigInteger(this.value / other.value); } toString() { return this.value.toString(); } }
+        class Random { nextInt(bound) { if(bound) { return Math.floor(Math.random() * bound); } return Math.floor(Math.random() * 2**32) - 2**31; } nextDouble() { return Math.random(); } }
+        class Date extends globalThis.Date { constructor(...args) { super(...args); } }
+        class SimpleDateFormat { constructor(pattern) { this.pattern = pattern; /* Pattern is ignored in this simulation */ } format(date) { if (date instanceof globalThis.Date) { return date.toLocaleString(); } return ''; } }
     `;
 
     let mainBody = '';
@@ -274,7 +283,7 @@ export function IdeLayout() {
                 .replace(/System\.out\.println\(([\s\S]*?)\);/g, 'mock_println($1);')
                 .replace(/System\.out\.print\(([\s\S]*?)\);/g, 'mock_print($1);')
                 .replace(/(String|int|double|float|boolean|char)\s*\[\s*\]/g, 'let')
-                .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner)\s+/g, (match, p1) => p1 ? 'const ' : 'let ')
+                .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)\s+/g, (match, p1) => p1 ? 'const ' : 'let ')
                 .replace(/new\s+(ArrayList|HashMap)<.*?>\s*\(\)/g, 'new $1()')
                 .replace(/Integer\.parseInt/g, 'parseInt');
 
