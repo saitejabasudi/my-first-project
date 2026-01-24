@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -97,6 +96,9 @@ export default function SettingsPage() {
               title="Data Deletion" 
               value="You can delete any project file directly from the project selection screen. Deleting the application from your device will remove all of its data." 
             />
+        </div>
+        <div className="mt-8 text-center">
+            <p className="font-bold text-muted-foreground">Made by Saiteja Basudi</p>
         </div>
       </main>
     </div>
