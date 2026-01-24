@@ -120,17 +120,6 @@ export default function ProjectSelectionPage() {
       } catch (error) {
         console.error("Failed to save projects to localStorage", error);
       }
-      
-      if (updatedProjects.length === 0) {
-         const defaultFiles = mockFiles;
-         try {
-            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(defaultFiles));
-         } catch (error) {
-             console.error("Failed to save default projects to localStorage", error);
-         }
-        return defaultFiles;
-      }
-
       return updatedProjects;
     });
   };

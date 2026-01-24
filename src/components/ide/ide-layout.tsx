@@ -187,11 +187,6 @@ export function IdeLayout() {
                 setActiveFile(newActiveFile);
                 router.replace(`/ide?file=${newActiveFile.id}`, { scroll: false });
             } else {
-                try {
-                    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
-                } catch (error) {
-                   console.error("Failed to save default project to localStorage", error);
-                }
                 router.push('/');
             }
         }
@@ -276,8 +271,8 @@ export function IdeLayout() {
     if (mainBody) {
         try {
             const jsCode = mainBody
-                .replace(/System\.out\.println\((.*?)\);/g, 'mock_println($1);')
-                .replace(/System\.out\.print\((.*?)\);/g, 'mock_print($1);')
+                .replace(/System\.out\.println\(([\s\S]*?)\);/g, 'mock_println($1);')
+                .replace(/System\.out\.print\(([\s\S]*?)\);/g, 'mock_print($1);')
                 .replace(/(String|int|double|float|boolean|char)\s*\[\s*\]/g, 'let')
                 .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner)\s+/g, (match, p1) => p1 ? 'const ' : 'let ')
                 .replace(/new\s+(ArrayList|HashMap)<.*?>\s*\(\)/g, 'new $1()')
