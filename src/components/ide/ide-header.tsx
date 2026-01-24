@@ -26,7 +26,7 @@ export function IdeHeader({ activeFile, onRun, isCompiling, mobileSidebar }: Ide
         <div className="flex items-center gap-2">
             <Logo className="h-6 w-6 text-primary" />
             <div>
-                <h1 className="text-lg font-semibold">JavaDroid IDE</h1>
+                <h1 className="text-lg font-semibold">Java Studio Pro</h1>
                 <p className="text-xs text-muted-foreground">{activeFile.name}</p>
             </div>
         </div>

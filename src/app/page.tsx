@@ -24,7 +24,6 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
-// The SplashScreen component is now a "dumb" component that only displays the progress.
 function SplashScreen({ progress }: { progress: number }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground font-body">
@@ -38,25 +37,19 @@ function SplashScreen({ progress }: { progress: number }) {
 
 export default function ProjectSelectionPage() {
   const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(0); // State for splash screen progress
+  const [progress, setProgress] = useState(0); 
   const [isCreateProjectOpen, setCreateProjectOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [projects, setProjects] = useState<JavaFile[]>([]);
   const router = useRouter();
 
-  // This effect now lives in the parent component.
-  // It controls the splash screen's progress and visibility.
   useEffect(() => {
-    // Only run the timer if we are in the loading state.
     if (!loading) return;
 
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(timer);
-          // When progress is complete, we stop showing the splash screen.
-          // This is safe because we are updating the state of the component
-          // that owns this effect.
           setLoading(false);
           return 100;
         }
@@ -64,7 +57,6 @@ export default function ProjectSelectionPage() {
       });
     }, 20);
 
-    // Cleanup the timer if the component unmounts.
     return () => {
       clearInterval(timer);
     };

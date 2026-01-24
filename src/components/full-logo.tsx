@@ -9,7 +9,7 @@ export function FullLogo({ className }: { className?: string }) {
             <Logo className="h-16 w-16 text-primary" />
         </div>
         <h1 className="text-3xl font-bold text-primary font-headline">
-            JavaDroid IDE
+            Java Studio Pro
         </h1>
     </div>
   );

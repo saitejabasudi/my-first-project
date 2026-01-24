@@ -1,18 +1,18 @@
 
-# JavaDroid IDE (Java Studio Pro)
+# Java Studio Pro
 
 <!-- SOCIAL PREVIEW BANNER SUGGESTION: Replace the URL with your generated banner -->
 <p align="center">
-  <img src="https://placehold.co/1280x640/221448/FFFFFF/png?text=JavaDroid+IDE" alt="JavaDroid IDE Banner"/>
+  <img src="https://placehold.co/1280x640/221448/FFFFFF/png?text=Java+Studio+Pro" alt="Java Studio Pro Banner"/>
 </p>
 
 ### Project Overview
 
-**JavaDroid IDE** is a modern, lightweight, and offline-first Integrated Development Environment for writing and running basic Java code, built as a Progressive Web App (PWA). It is designed to provide a seamless coding experience on any device, from a desktop browser to a mobile phone, without requiring an internet connection or a powerful backend. The entire application runs on the client, embracing an "offline-first" philosophy that ensures your projects are always accessible, private, and instantly available.
+**Java Studio Pro** is a modern, lightweight, and offline-first Integrated Development Environment for writing and running basic Java code, built as a Progressive Web App (PWA). It is designed to provide a seamless coding experience on any device, from a desktop browser to a mobile phone, without requiring an internet connection or a powerful backend. The entire application runs on the client, embracing an "offline-first" philosophy that ensures your projects are always accessible, private, and instantly available.
 
 This project leverages a cutting-edge technical stack, including **Next.js 14 (App Router)**, **React**, and **TypeScript** for a robust and type-safe foundation. The UI is crafted with the elegant and accessible **ShadCN UI** component library, styled with **Tailwind CSS** for a clean, responsive design. The core PWA functionality is powered by `@ducanh2912/next-pwa`, enabling native-like installation, offline capabilities, and a truly integrated user experience.
 
-The primary goal of JavaDroid IDE is to democratize coding by removing common barriers. It empowers developers and learners to write Java **anywhere, anytime, without needing high-end hardware or a persistent internet connection**. By storing all projects directly in the browser's local storage, the app guarantees user privacy and delivers a zero-latency workflow, making it the perfect tool for quick prototyping, learning on the go, or coding in environments with limited connectivity.
+The primary goal of Java Studio Pro is to democratize coding by removing common barriers. It empowers developers and learners to write Java **anywhere, anytime, without needing high-end hardware or a persistent internet connection**. By storing all projects directly in the browser's local storage, the app guarantees user privacy and delivers a zero-latency workflow, making it the perfect tool for quick prototyping, learning on the go, or coding in environments with limited connectivity.
 
 ---
 
@@ -67,4 +67,4 @@ Use these prompts with an AI image generator (like Midjourney, DALL-E, or Firefl
     > `logo design, stylized code brackets "<>" and an Android bot face merged, flat minimalist vector, deep blue (#221448) and vibrant orange (#FF8C00), on a clean white background, tech company logo, modern, simple, iconic`
 
 *   **Social Preview / GitHub Banner Prompt:**
-    > `wide banner for a GitHub project, abstract background with subtle geometric code patterns, a central, sleek logo of code brackets and an android bot, deep blue and orange color scheme, text "JavaDroid IDE" in a modern sans-serif font, tagline "Code Java Anywhere. Offline.", professional, tech, high resolution`
+    > `wide banner for a GitHub project, abstract background with subtle geometric code patterns, a central, sleek logo of code brackets and an android bot, deep blue and orange color scheme, text "Java Studio Pro" in a modern sans-serif font, tagline "Code Java Anywhere. Offline.", professional, tech, high resolution`

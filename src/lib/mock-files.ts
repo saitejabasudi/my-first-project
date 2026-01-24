@@ -11,44 +11,62 @@ export const mockFiles: JavaFile[] = [
     name: 'Main.java',
     content: `public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello from JavaDroid IDE!");
+        System.out.println("Welcome to Java Studio Pro!");
         System.out.println("You can edit this code and run it.");
-        System.out.println("Try writing your own code with variables and loops.");
+        System.out.println("Try the other examples to see library support.");
     }
 }`,
   },
   {
     id: 'calculator-java-2',
     name: 'Calculator.java',
-    content: `public class Calculator {
+    content: `import java.util.Scanner;
+
+public class Calculator {
     public static void main(String[] args) {
-        // This program now performs real calculations.
-        int a = 10;
-        int b = 5;
-        System.out.println("Demonstrating variables and arithmetic:");
-        System.out.println("a = " + a);
-        System.out.println("b = " + b);
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter the first number: ");
+        int a = scanner.nextInt();
+
+        System.out.print("Enter the second number: ");
+        int b = scanner.nextInt();
+
         System.out.println("a + b = " + (a + b));
         System.out.println("a - b = " + (a - b));
         System.out.println("a * b = " + (a * b));
         System.out.println("a / b = " + (a / b));
+        
+        scanner.close();
     }
 }`,
   },
   {
-    id: 'star-pattern-java-4',
-    name: 'StarPattern.java',
-    content: `public class StarPattern {
+    id: 'datastructures-java-3',
+    name: 'DataStructures.java',
+    content: `import java.util.ArrayList;
+import java.util.HashMap;
+
+public class DataStructures {
     public static void main(String[] args) {
-        // This program now uses a real for-loop.
-        System.out.println("A right-angled triangle of stars:");
-        for (int i = 1; i <= 5; i++) {
-            String line = "";
-            for (int j = 1; j <= i; j++) {
-                line += "* ";
-            }
-            System.out.println(line);
-        }
+        // Using ArrayList
+        System.out.println("--- ArrayList Example ---");
+        ArrayList<String> fruits = new ArrayList<String>();
+        fruits.add("Apple");
+        fruits.add("Banana");
+        fruits.add("Cherry");
+        System.out.println("Fruits: " + fruits);
+        System.out.println("Second fruit: " + fruits.get(1));
+        System.out.println("ArrayList size: " + fruits.size());
+
+        // Using HashMap
+        System.out.println("\\n--- HashMap Example ---");
+        HashMap<String, Integer> fruitPrices = new HashMap<String, Integer>();
+        fruitPrices.put("Apple", 100);
+        fruitPrices.put("Banana", 50);
+        fruitPrices.put("Cherry", 200);
+        System.out.println("Fruit Prices: " + fruitPrices);
+        System.out.println("Price of an Apple: " + fruitPrices.get("Apple"));
+        System.out.println("HashMap size: " + fruitPrices.size());
     }
 }`,
   }

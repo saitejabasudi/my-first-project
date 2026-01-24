@@ -16,13 +16,13 @@ const sourceCodePro = Source_Code_Pro({
 });
 
 export const metadata: Metadata = {
-  title: 'JavaDroid IDE',
+  title: 'Java Studio Pro',
   description: 'A powerful offline Java IDE for Android, built with Next.js.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'JavaDroid IDE',
+    title: 'Java Studio Pro',
   },
   formatDetection: {
     telephone: false,
@@ -37,10 +37,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${sourceCodePro.variable}`} suppressHydrationWarning>
       <head>
-        <meta name="application-name" content="JavaDroid IDE" />
+        <meta name="application-name" content="Java Studio Pro" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="JavaDroid IDE" />
+        <meta name="apple-mobile-web-app-title" content="Java Studio Pro" />
         <meta name="description" content="A powerful offline Java IDE for Android, built with Next.js." />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />

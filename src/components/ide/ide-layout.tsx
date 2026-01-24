@@ -13,10 +13,10 @@ import { FileExplorer } from './file-explorer';
 import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { InputDialog } from './input-dialog';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 
-// Improved linter to validate basic Java structure
 function lintJavaCode(code: string, filename: string): string[] {
     const errors: string[] = [];
     if (!code) {
@@ -24,14 +24,12 @@ function lintJavaCode(code: string, filename: string): string[] {
         return errors;
     }
 
-    // 1. Check for public class matching filename
     const className = filename.replace('.java', '');
     const classRegex = new RegExp(`public\\s+class\\s+${className}`);
     if (!classRegex.test(code)) {
         errors.push(`Error: Missing 'public class ${className}'. The public class name must match the file name.`);
     }
 
-    // 2. Check for main method
     const mainMethodRegex = /public\s+static\s+void\s+main\s*\(\s*String\s*\[\s*]\s*args\s*\)/;
     if (!mainMethodRegex.test(code)) {
         errors.push(`Error: Missing 'public static void main(String[] args)' method entry point.`);
@@ -41,33 +39,35 @@ function lintJavaCode(code: string, filename: string): string[] {
     const braceStack: { char: string, line: number }[] = [];
     const parenStack: { char: string, line: number }[] = [];
 
-    // 3. Check for balanced braces and parentheses
     lines.forEach((line, index) => {
         const lineNumber = index + 1;
-        // Ignore comments for brace/paren checking
         const codeLine = line.split('//')[0];
         for (let i = 0; i < codeLine.length; i++) {
             const char = codeLine[i];
-            if (char === '{') {
-                braceStack.push({ char, line: lineNumber });
-            } else if (char === '}') {
+            if (char === '{') braceStack.push({ char, line: lineNumber });
+            else if (char === '}') {
                 if (braceStack.length === 0) errors.push(`Error at line ${lineNumber}: Extra closing brace '}'.`);
                 else braceStack.pop();
-            } else if (char === '(') {
-                parenStack.push({ char, line: lineNumber });
-            } else if (char === ')') {
+            } else if (char === '(') parenStack.push({ char, line: lineNumber });
+            else if (char === ')') {
                 if (parenStack.length === 0) errors.push(`Error at line ${lineNumber}: Extra closing parenthesis ')'.`);
                 else parenStack.pop();
             }
         }
     });
     
-    braceStack.forEach(brace => {
-        errors.push(`Error on line ${brace.line}: Mismatched curly braces. Unclosed brace '{' found.`);
-    });
-    parenStack.forEach(paren => {
-        errors.push(`Error on line ${paren.line}: Mismatched parentheses. Unclosed parenthesis '(' found.`);
-    });
+    braceStack.forEach(brace => errors.push(`Error on line ${brace.line}: Mismatched curly braces. Unclosed brace '{' found.`));
+    parenStack.forEach(paren => errors.push(`Error on line ${paren.line}: Mismatched parentheses. Unclosed parenthesis '(' found.`));
+
+    const importRegex = /^\s*import\s+([a-zA-Z0-9_]+\.)+[a-zA-Z0-9_*]+;/gm;
+    let match;
+    while ((match = importRegex.exec(code)) !== null) {
+        const importStatement = match[0];
+        if (!importStatement.includes('import java.') && !importStatement.includes('import javax.')) {
+            const line = code.substring(0, match.index).split('\n').length;
+            errors.push(`Error at line ${line}: Unsupported import '${match[0]}'. Only standard java.* and javax.* libraries are supported.`);
+        }
+    }
 
     return errors;
 }
@@ -87,6 +87,10 @@ export function IdeLayout() {
   const router = useRouter();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const [isInputDialogOpen, setInputDialogOpen] = useState(false);
+  const [inputPrompts, setInputPrompts] = useState<string[]>([]);
+  const [onInputDialogSubmit, setOnInputDialogSubmit] = useState<{ resolver: (inputs: string[]) => void; rejecter: (reason?: any) => void; } | null>(null);
 
   useEffect(() => {
     let files: JavaFile[] = [];
@@ -195,7 +199,7 @@ export function IdeLayout() {
     });
   }, [activeFile, router]);
 
-  const runProgram = useCallback(() => {
+  const runProgram = useCallback(async () => {
     if (!activeFile) return;
 
     setIsCompiling(true);
@@ -203,114 +207,123 @@ export function IdeLayout() {
     setConsoleOutput([`> Validating and compiling ${activeFile.name}...`]);
     setErrorOutput([]);
 
-    setTimeout(() => {
-        const errors = lintJavaCode(activeFile.content, activeFile.name);
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (errors.length > 0) {
-            setConsoleOutput(prev => [...prev, 'Compilation failed. See Problems tab for details.']);
-            setErrorOutput(errors);
-            setActiveTab('problems');
-            toast({
-                variant: 'destructive',
-                title: 'Compilation Failed',
-                description: `Found ${errors.length} error(s) in ${activeFile.name}.`,
-            });
-        } else {
-            let mainBody = '';
-            const runtimeErrors: string[] = [];
-            const mainSignatureRegex = /public\s+static\s+void\s+main\s*\([^)]*\)\s*\{/;
-            const mainSignatureMatch = activeFile.content.match(mainSignatureRegex);
+    const errors = lintJavaCode(activeFile.content, activeFile.name);
 
-            if (mainSignatureMatch && typeof mainSignatureMatch.index === 'number') {
-                const code = activeFile.content;
-                const startIndex = mainSignatureMatch.index + mainSignatureMatch[0].length;
-                let braceCount = 1;
-                let endIndex = -1;
-
-                for (let i = startIndex; i < code.length; i++) {
-                    if (code[i] === '{') braceCount++;
-                    if (code[i] === '}') braceCount--;
-                    if (braceCount === 0) {
-                        endIndex = i;
-                        break;
-                    }
-                }
-
-                if (endIndex !== -1) {
-                    mainBody = code.substring(startIndex, endIndex);
-                } else {
-                    runtimeErrors.push("Runtime Error: Could not find closing brace for main method.");
-                }
-            }
-
-            let simulatedOutput: string[] = [];
-
-            if (mainBody && runtimeErrors.length === 0) {
-                if (mainBody.includes('Scanner')) {
-                    runtimeErrors.push("Runtime Error: Interactive input with Scanner is not supported in this version.");
-                } else {
-                    try {
-                        let jsCode = mainBody
-                            .replace(/System\.out\.println\((.*?)\);/g, 'mock_println($1);')
-                            .replace(/System\.out\.print\((.*?)\);/g, 'mock_print($1);')
-                            .replace(/String\[\]/g, 'var')
-                            .replace(/String\s/g, 'let ')
-                            .replace(/int\s/g, 'let ')
-                            .replace(/double\s/g, 'let ')
-                            .replace(/float\s/g, 'let ')
-                            .replace(/boolean\s/g, 'let ');
-                        
-                        let outputBuffer: string[] = [];
-                        let lineBuffer = '';
-
-                        const mock_println = (val: any = '') => {
-                            outputBuffer.push(lineBuffer + (val?.toString() ?? ''));
-                            lineBuffer = '';
-                        };
-
-                        const mock_print = (val: any = '') => {
-                            lineBuffer += (val?.toString() ?? '');
-                        };
-                        
-                        const sandboxedExecutor = new Function('mock_println', 'mock_print', jsCode);
-                        sandboxedExecutor(mock_println, mock_print);
-
-                        if (lineBuffer) {
-                            outputBuffer.push(lineBuffer);
-                        }
-                        
-                        simulatedOutput = outputBuffer;
-
-                    } catch (e: any) {
-                        runtimeErrors.push(`Runtime Error: ${e.message}`);
-                    }
-                }
-            }
-
-            if (runtimeErrors.length > 0) {
-                setErrorOutput(runtimeErrors);
-                setActiveTab('problems');
-                toast({
-                    variant: 'destructive',
-                    title: 'Runtime Error',
-                    description: `Execution failed for ${activeFile.name}.`,
-                });
-            } else {
-                const finalOutput = [`> Compiling ${activeFile.name}...`, 'Compilation successful.', '> Running...', ...simulatedOutput, '\nExecution finished.'];
-                if (simulatedOutput.length === 0) {
-                    finalOutput.splice(3, 0, '(Program ran with no output to console)');
-                }
-                setConsoleOutput(finalOutput);
-                setActiveTab('console');
-                toast({
-                    title: 'Execution Complete',
-                    description: `${activeFile.name} ran successfully.`,
-                });
-            }
-        }
+    if (errors.length > 0) {
+        setConsoleOutput(prev => [...prev, 'Compilation failed. See Problems tab for details.']);
+        setErrorOutput(errors);
+        setActiveTab('problems');
         setIsCompiling(false);
-    }, 1000);
+        toast({
+            variant: 'destructive',
+            title: 'Compilation Failed',
+            description: `Found ${errors.length} error(s) in ${activeFile.name}.`,
+        });
+        return;
+    }
+
+    let userInputs: string[] = [];
+    const usesScanner = /new\s+Scanner\s*\(\s*System\.in\s*\)/.test(activeFile.content);
+
+    if (usesScanner) {
+        const promptRegex = /System\.out\.print\s*\(\s*"(.*?)"\s*\);/g;
+        const prompts = [...activeFile.content.matchAll(promptRegex)].map(match => match[1]);
+        setInputPrompts(prompts);
+        
+        try {
+            userInputs = await new Promise<string[]>((resolve, reject) => {
+                setOnInputDialogSubmit({ resolver: resolve, rejecter: reject });
+                setInputDialogOpen(true);
+            });
+        } catch (e) {
+            setIsCompiling(false);
+            setShowOutput(false);
+            return;
+        }
+    }
+
+    setConsoleOutput(prev => [...prev, 'Compilation successful.', '> Running...']);
+
+    const prelude = `
+        class ArrayList extends Array { add(val) { this.push(val); return true; } get(index) { return this[index]; } size() { return this.length; } isEmpty() { return this.length === 0; } remove(index) { return this.splice(index, 1)[0]; } toString() { return \`[\${this.join(', ')}]\`; } }
+        class HashMap extends Map { constructor() { super(); } put(key, value) { this.set(key, value); return value; } isEmpty() { return this.size === 0; } containsKey(key) { return this.has(key); } remove(key) { const v = this.get(key); this.delete(key); return v; } clear() { super.clear(); } values() { return Array.from(super.values()); } keySet() { return Array.from(this.keys()); } toString() { let parts = []; for (let [key, value] of this.entries()) { parts.push(key + '=' + value); } return '{' + parts.join(', ') + '}';} }
+        let __scanner_inputs__ = []; let __scanner_cursor__ = 0; function __init_scanner__(inputs) { __scanner_inputs__ = inputs.flatMap(i => i.split(/\\s+|\\r?\\n/)).filter(Boolean); __scanner_cursor__ = 0; }
+        class Scanner { constructor(source) { if (source !== System.in) throw new Error("Scanner can only be used with System.in."); } nextLine() { return __scanner_inputs__[__scanner_cursor__++] || ""; } nextInt() { return parseInt(this.nextLine(), 10) || 0; } nextDouble() { return parseFloat(this.nextLine()) || 0.0; } next() { return this.nextLine(); } hasNext() { return __scanner_cursor__ < __scanner_inputs__.length; } close() {} }
+        const System = { in: 'System.in' };
+    `;
+
+    let mainBody = '';
+    const mainSignatureRegex = /public\s+static\s+void\s+main\s*\([^)]*\)\s*\{/;
+    const mainSignatureMatch = activeFile.content.match(mainSignatureRegex);
+    if (mainSignatureMatch && typeof mainSignatureMatch.index === 'number') {
+        const code = activeFile.content;
+        const startIndex = mainSignatureMatch.index + mainSignatureMatch[0].length;
+        let braceCount = 1;
+        let endIndex = -1;
+        for (let i = startIndex; i < code.length; i++) {
+            if (code[i] === '{') braceCount++;
+            if (code[i] === '}') braceCount--;
+            if (braceCount === 0) { endIndex = i; break; }
+        }
+        if (endIndex !== -1) mainBody = code.substring(startIndex, endIndex);
+    }
+
+    let simulatedOutput: string[] = [];
+    const runtimeErrors: string[] = [];
+
+    if (mainBody) {
+        try {
+            const jsCode = mainBody
+                .replace(/System\.out\.println\((.*?)\);/g, 'mock_println($1);')
+                .replace(/System\.out\.print\((.*?)\);/g, 'mock_print($1);')
+                .replace(/(String|int|double|float|boolean|char)\s*\[\s*\]/g, 'let')
+                .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner)\s+/g, (match, p1) => p1 ? 'const ' : 'let ')
+                .replace(/new\s+(ArrayList|HashMap)<.*?>\s*\(\)/g, 'new $1()')
+                .replace(/Integer\.parseInt/g, 'parseInt');
+
+            let outputBuffer: string[] = [];
+            let lineBuffer = '';
+
+            const mock_println = (val = '') => { outputBuffer.push(lineBuffer + (val?.toString() ?? '')); lineBuffer = ''; };
+            const mock_print = (val = '') => { lineBuffer += (val?.toString() ?? ''); };
+            
+            const scannerInit = usesScanner ? `__init_scanner__(${JSON.stringify(userInputs)});` : '';
+            const fullCodeToRun = prelude + scannerInit + jsCode;
+
+            const sandboxedExecutor = new Function('mock_println', 'mock_print', fullCodeToRun);
+            sandboxedExecutor(mock_println, mock_print);
+
+            if (lineBuffer) outputBuffer.push(lineBuffer);
+            simulatedOutput = outputBuffer;
+        } catch (e: any) {
+            runtimeErrors.push(`Runtime Error: ${e.message}. Check your code for errors.`);
+        }
+    }
+
+    if (runtimeErrors.length > 0) {
+        setErrorOutput(runtimeErrors);
+        setActiveTab('problems');
+    } else {
+        setConsoleOutput(prev => [...prev, ...simulatedOutput, '\nExecution finished.']);
+        setActiveTab('console');
+    }
+
+    setIsCompiling(false);
   }, [activeFile, toast]);
+  
+  const handleDialogSubmit = (inputs: string[]) => {
+    if(onInputDialogSubmit) onInputDialogSubmit.resolver(inputs);
+    setInputDialogOpen(false);
+    setOnInputDialogSubmit(null);
+  };
+
+  const handleDialogClose = () => {
+    if(onInputDialogSubmit?.rejecter) onInputDialogSubmit.rejecter(new Error("Input dialog closed by user"));
+    setInputDialogOpen(false);
+    setOnInputDialogSubmit(null);
+  }
 
   if (!activeFile || !isLoaded) {
     return (
@@ -388,6 +401,14 @@ export function IdeLayout() {
                 </Tabs>
               </div>
           </div>
+        )}
+        {isInputDialogOpen && (
+            <InputDialog
+                isOpen={isInputDialogOpen}
+                prompts={inputPrompts}
+                onSubmit={handleDialogSubmit}
+                onClose={handleDialogClose}
+            />
         )}
     </div>
   );
