@@ -298,7 +298,7 @@ export function IdeLayout() {
                         .replace(/System\.out\.println\(([\s\S]*?)\);/g, 'mock_println($1);')
                         .replace(/System\.out\.print\(([\s\S]*?)\);/g, 'mock_print($1);')
                         .replace(/(String|int|double|float|boolean|char)\s*\[\s*\]/g, 'let')
-                        .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)\s+/g, (match, p1) => p1 ? 'const ' : 'let ')
+                        .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)(<.*?>)?\s+/g, (match, p1) => p1 ? 'const ' : 'let ')
                         .replace(/new\s+(ArrayList|HashMap)<.*?>\s*\(\)/g, 'new $1()')
                         .replace(/Integer\.parseInt/g, 'parseInt');
                 } else { // It's a string or comment, return as is
@@ -438,5 +438,3 @@ export function IdeLayout() {
     </div>
   );
 }
-
-    
