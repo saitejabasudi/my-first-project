@@ -36,32 +36,63 @@ function lintJavaCode(code: string, filename: string): string[] {
         errors.push(`Error: Missing 'public static void main(String[] args)' method entry point.`);
     }
 
-    const lines = code.split('\n');
-    const braceStack: { char: string, line: number }[] = [];
-    const parenStack: { char: string, line: number }[] = [];
+    const stringAndCommentRegex = /(\/\*[\s\S]*?\*\/)|(\/\/[^\n]*)|("(?:\\[\s\S]|[^"\\])*")/g;
+    const braceStack: { char: string, index: number }[] = [];
+    const parenStack: { char: string, index: number }[] = [];
+    
+    const codeSegments: { text: string, offset: number }[] = [];
+    let lastIndex = 0;
+    let match;
 
-    lines.forEach((line, index) => {
-        const lineNumber = index + 1;
-        const codeLine = line.split('//')[0];
-        for (let i = 0; i < codeLine.length; i++) {
-            const char = codeLine[i];
-            if (char === '{') braceStack.push({ char, line: lineNumber });
-            else if (char === '}') {
-                if (braceStack.length === 0) errors.push(`Error at line ${lineNumber}: Extra closing brace '}'.`);
-                else braceStack.pop();
-            } else if (char === '(') parenStack.push({ char, line: lineNumber });
-            else if (char === ')') {
-                if (parenStack.length === 0) errors.push(`Error at line ${lineNumber}: Extra closing parenthesis ')'.`);
-                else parenStack.pop();
+    while((match = stringAndCommentRegex.exec(code)) !== null) {
+      const codePart = code.substring(lastIndex, match.index);
+      if (codePart) {
+        codeSegments.push({ text: codePart, offset: lastIndex });
+      }
+      lastIndex = match.index + match[0].length;
+    }
+    const lastCodePart = code.substring(lastIndex);
+    if(lastCodePart) {
+       codeSegments.push({ text: lastCodePart, offset: lastIndex });
+    }
+
+    for (const segment of codeSegments) {
+        for (let i = 0; i < segment.text.length; i++) {
+            const char = segment.text[i];
+            const globalIndex = segment.offset + i;
+            
+            if (char === '{') {
+                braceStack.push({ char, index: globalIndex });
+            } else if (char === '}') {
+                if (braceStack.length === 0) {
+                    const lineNumber = code.substring(0, globalIndex).split('\n').length;
+                    errors.push(`Error at line ${lineNumber}: Extra closing brace '}'.`);
+                } else {
+                    braceStack.pop();
+                }
+            } else if (char === '(') {
+                parenStack.push({ char, index: globalIndex });
+            } else if (char === ')') {
+                if (parenStack.length === 0) {
+                    const lineNumber = code.substring(0, globalIndex).split('\n').length;
+                    errors.push(`Error at line ${lineNumber}: Extra closing parenthesis ')'.`);
+                } else {
+                    parenStack.pop();
+                }
             }
         }
-    });
+    }
     
-    braceStack.forEach(brace => errors.push(`Error on line ${brace.line}: Mismatched curly braces. Unclosed brace '{' found.`));
-    parenStack.forEach(paren => errors.push(`Error on line ${paren.line}: Mismatched parentheses. Unclosed parenthesis '(' found.`));
+    braceStack.forEach(brace => {
+        const lineNumber = code.substring(0, brace.index).split('\n').length;
+        errors.push(`Error on line ${lineNumber}: Mismatched curly braces. Unclosed brace '{' found.`);
+    });
+    parenStack.forEach(paren => {
+        const lineNumber = code.substring(0, paren.index).split('\n').length;
+        errors.push(`Error on line ${lineNumber}: Mismatched parentheses. Unclosed parenthesis '(' found.`);
+    });
 
     const importRegex = /^\s*import\s+([a-zA-Z0-9_.*]+);/gm;
-    let match;
     while ((match = importRegex.exec(code)) !== null) {
       const fullImport = match[1];
       if (!fullImport.startsWith('java.') && !fullImport.startsWith('javax.')) {
