@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InputDialog } from './input-dialog';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
+const INITIALIZED_KEY = 'java-ide-initialized';
 
 function lintJavaCode(code: string, filename: string): string[] {
     const errors: string[] = [];
@@ -96,23 +97,22 @@ export function IdeLayout() {
     let files: JavaFile[] = [];
     try {
       const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
+      const isInitialized = localStorage.getItem(INITIALIZED_KEY);
+
       if (storedProjectsJson) {
         const parsedFiles = JSON.parse(storedProjectsJson);
-        if (Array.isArray(parsedFiles) && parsedFiles.length > 0) {
+        if (Array.isArray(parsedFiles)) {
             files = parsedFiles;
         }
       }
+      
+      if (!isInitialized && files.length === 0) {
+          files = mockFiles;
+          localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+          localStorage.setItem(INITIALIZED_KEY, 'true');
+      }
     } catch (error) {
       console.error("Failed to load projects from localStorage", error);
-    }
-    
-    if (files.length === 0) {
-        files = mockFiles;
-        try {
-            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
-        } catch (error) {
-           console.error("Failed to save default project to localStorage", error);
-        }
     }
     
     setAllFiles(files);
@@ -140,7 +140,8 @@ export function IdeLayout() {
         if (!fileIdFromUrl || fileIdFromUrl !== fileToLoad.id) {
             router.replace(`/ide?file=${fileToLoad.id}`, { scroll: false });
         }
-    } else {
+    } else if (allFiles.length === 0) {
+        // If there are no files at all, push to homepage
         router.push('/');
     }
   }, [searchParams, allFiles, router, isLoaded]);
@@ -279,13 +280,33 @@ export function IdeLayout() {
 
     if (mainBody) {
         try {
-            const jsCode = mainBody
-                .replace(/System\.out\.println\(([\s\S]*?)\);/g, 'mock_println($1);')
-                .replace(/System\.out\.print\(([\s\S]*?)\);/g, 'mock_print($1);')
-                .replace(/(String|int|double|float|boolean|char)\s*\[\s*\]/g, 'let')
-                .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)\s+/g, (match, p1) => p1 ? 'const ' : 'let ')
-                .replace(/new\s+(ArrayList|HashMap)<.*?>\s*\(\)/g, 'new $1()')
-                .replace(/Integer\.parseInt/g, 'parseInt');
+            const stringAndCommentRegex = /(\/\*[\s\S]*?\*\/)|(\/\/[^\n]*)|("(?:\\[\s\S]|[^"\\])*")/g;
+            const parts: string[] = [];
+            let lastIndex = 0;
+            let match;
+
+            while((match = stringAndCommentRegex.exec(mainBody)) !== null) {
+                parts.push(mainBody.substring(lastIndex, match.index));
+                parts.push(match[0]);
+                lastIndex = match.index + match[0].length;
+            }
+            parts.push(mainBody.substring(lastIndex));
+
+            const processedParts = parts.map((part, index) => {
+                if (index % 2 === 0) { // It's a code segment
+                    return part
+                        .replace(/System\.out\.println\(([\s\S]*?)\);/g, 'mock_println($1);')
+                        .replace(/System\.out\.print\(([\s\S]*?)\);/g, 'mock_print($1);')
+                        .replace(/(String|int|double|float|boolean|char)\s*\[\s*\]/g, 'let')
+                        .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)\s+/g, (match, p1) => p1 ? 'const ' : 'let ')
+                        .replace(/new\s+(ArrayList|HashMap)<.*?>\s*\(\)/g, 'new $1()')
+                        .replace(/Integer\.parseInt/g, 'parseInt');
+                } else { // It's a string or comment, return as is
+                    return part;
+                }
+            });
+
+            const jsCode = processedParts.join('');
 
             let outputBuffer: string[] = [];
             let lineBuffer = '';
@@ -417,3 +438,5 @@ export function IdeLayout() {
     </div>
   );
 }
+
+    
