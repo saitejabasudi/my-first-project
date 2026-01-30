@@ -8,11 +8,13 @@ import { ThemeProvider } from '@/components/theme-provider';
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
 });
 
 const sourceCodePro = Source_Code_Pro({
   subsets: ['latin'],
   variable: '--font-source-code-pro',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -35,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${sourceCodePro.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${sourceCodePro.variable} antialiased`} suppressHydrationWarning>
       <head>
         <meta name="application-name" content="Java Studio Pro" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -52,7 +54,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="shortcut icon" href="/favicon.ico" />
       </head>
-      <body className="font-body antialiased bg-background">
+      <body className="font-body bg-background">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
