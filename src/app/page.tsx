@@ -23,6 +23,7 @@ import { FullLogo } from '@/components/full-logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
+const INITIALIZED_KEY = 'java-ide-initialized';
 
 function SplashScreen({ progress }: { progress: number }) {
   return (
@@ -66,23 +67,26 @@ export default function ProjectSelectionPage() {
     let storedProjects: JavaFile[] = [];
     try {
       const storedProjectsJson = localStorage.getItem(PROJECTS_STORAGE_KEY);
+      const isInitialized = localStorage.getItem(INITIALIZED_KEY);
+
       if (storedProjectsJson) {
         const parsed = JSON.parse(storedProjectsJson);
         if (Array.isArray(parsed)) {
             storedProjects = parsed;
         }
       }
+
+      if (!isInitialized && storedProjects.length === 0) {
+          storedProjects = mockFiles;
+          try {
+              localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
+              localStorage.setItem(INITIALIZED_KEY, 'true');
+          } catch (error) {
+              console.error("Failed to save default projects to localStorage", error);
+          }
+      }
     } catch (error) {
       console.error("Failed to parse projects from localStorage", error);
-    }
-
-    if (storedProjects.length === 0) {
-        storedProjects = mockFiles;
-        try {
-            localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(mockFiles));
-        } catch (error) {
-            console.error("Failed to save default projects to localStorage", error);
-        }
     }
     setProjects(storedProjects);
   }, []);
