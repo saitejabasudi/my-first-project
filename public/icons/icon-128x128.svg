@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title>App Icon</title>
+  <desc>Simple flat icon with gradient rounded background and white play symbol</desc>
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#6C63FF"/>
+      <stop offset="100%" stop-color="#00D4FF"/>
+    </linearGradient>
+  </defs>
+  <rect rx="24" width="128" height="128" fill="url(#g)"/>
+  <circle cx="64" cy="64" r="30" fill="#ffffff" opacity="0.08"/>
+  <polygon points="54,44 54,84 94,64" fill="#ffffff" />
+</svg>
