@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, FileCode, Trash2, Settings } from 'lucide-react';
+import { Plus, Code, Trash2, Settings } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { Logo } from '@/components/logo';
 import { Progress } from '@/components/ui/progress';
@@ -25,11 +25,28 @@ import { ThemeToggle } from '@/components/theme-toggle';
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const INITIALIZED_KEY = 'java-ide-initialized';
 
-function SplashScreen({ progress }: { progress: number }) {
+function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          onTransitionEnd();
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 20);
+
+    return () => clearInterval(timer);
+  }, [onTransitionEnd]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground font-body">
       <FullLogo />
-      <p className="text-muted-foreground mb-4 mt-4">Initializing Environment ...</p>
+      <p className="text-muted-foreground mb-4 mt-4">Loading Projects...</p>
       <Progress value={progress} className="w-64 h-1" />
     </div>
   );
@@ -38,30 +55,10 @@ function SplashScreen({ progress }: { progress: number }) {
 
 export default function ProjectSelectionPage() {
   const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(0); 
   const [isCreateProjectOpen, setCreateProjectOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [projects, setProjects] = useState<JavaFile[]>([]);
   const router = useRouter();
-
-  useEffect(() => {
-    if (!loading) return;
-
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          setLoading(false);
-          return 100;
-        }
-        return prev + 1;
-      });
-    }, 20);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, [loading]);
 
   useEffect(() => {
     let storedProjects: JavaFile[] = [];
@@ -129,7 +126,7 @@ export default function ProjectSelectionPage() {
   };
   
   if (loading) {
-    return <SplashScreen progress={progress} />;
+    return <SplashScreen onTransitionEnd={() => setLoading(false)} />;
   }
 
   return (
@@ -192,7 +189,7 @@ export default function ProjectSelectionPage() {
                     <CardContent className="pt-6 flex items-center justify-between">
                         <div className="flex items-start gap-4">
                             <div className="bg-secondary p-3 rounded-lg">
-                                <FileCode className="h-6 w-6 text-secondary-foreground" />
+                                <Code className="h-6 w-6 text-secondary-foreground" />
                             </div>
                             <div>
                                 <h3 className="font-semibold">{file.name}</h3>
