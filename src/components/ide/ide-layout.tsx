@@ -31,7 +31,7 @@ function lintJavaCode(code: string, filename: string): string[] {
         errors.push(`Error: Missing 'public class ${className}'. The public class name must match the file name.`);
     }
 
-    const mainMethodRegex = /public\s+static\s+void\s+main\s*\(\s*String\s*\[\s*]\s*args\s*\)/;
+    const mainMethodRegex = /public\s+static\s+void\s+main\s*\(\s*String\s*(\[\s*\]\s*args|args\s*\[\s*\])\s*\)/;
     if (!mainMethodRegex.test(code)) {
         errors.push(`Error: Missing 'public static void main(String[] args)' method entry point.`);
     }
@@ -178,21 +178,26 @@ export function IdeLayout() {
   }, [searchParams, allFiles, router, isLoaded]);
 
   const handleCodeChange = useCallback((newCode: string) => {
-    if (!activeFile) return;
-    
-    const updatedFile = { ...activeFile, content: newCode };
-    setActiveFile(updatedFile);
+    setActiveFile(currentActiveFile => {
+      if (!currentActiveFile) return null;
+      
+      const updatedFile = { ...currentActiveFile, content: newCode };
 
-    setAllFiles(currentFiles => {
-      const updatedFiles = currentFiles.map((f: JavaFile) => f.id === activeFile.id ? updatedFile : f);
-      try {
-        localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
-      } catch (error) {
+      setAllFiles(currentFiles => {
+        const updatedFiles = currentFiles.map(f =>
+          f.id === updatedFile.id ? updatedFile : f
+        );
+        try {
+          localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(updatedFiles));
+        } catch (error) {
           console.error("Failed to save project to localStorage", error);
-      }
-      return updatedFiles;
+        }
+        return updatedFiles;
+      });
+      
+      return updatedFile;
     });
-  }, [activeFile]);
+  }, []);
 
   const handleFileSelect = useCallback((fileId: string) => {
     const fileToLoad = allFiles.find(f => f.id === fileId);
@@ -291,19 +296,56 @@ export function IdeLayout() {
     `;
 
     let mainBody = '';
-    const mainSignatureRegex = /public\s+static\s+void\s+main\s*\([^)]*\)\s*\{/;
+    const mainSignatureRegex = /public\s+static\s+void\s+main\s*\(\s*String\s*(\[\s*\]\s*args|args\s*\[\s*\])\s*\)\s*\{/;
     const mainSignatureMatch = activeFile.content.match(mainSignatureRegex);
+
     if (mainSignatureMatch && typeof mainSignatureMatch.index === 'number') {
         const code = activeFile.content;
         const startIndex = mainSignatureMatch.index + mainSignatureMatch[0].length;
+        const codeToSearch = code.substring(startIndex);
+        
         let braceCount = 1;
-        let endIndex = -1;
-        for (let i = startIndex; i < code.length; i++) {
-            if (code[i] === '{') braceCount++;
-            if (code[i] === '}') braceCount--;
-            if (braceCount === 0) { endIndex = i; break; }
+        let bodyEndIndex = -1;
+
+        const stringAndCommentRegex = /(\/\*[\s\S]*?\*\/)|(\/\/[^\n]*)|("(?:\\[\s\S]|[^"\\])*")/g;
+        
+        const codeSegments: {text: string, index: number}[] = [];
+        let lastRegexIndex = 0;
+        let regexMatch;
+
+        while((regexMatch = stringAndCommentRegex.exec(codeToSearch)) !== null) {
+            const codePart = codeToSearch.substring(lastRegexIndex, regexMatch.index);
+            if (codePart) {
+                codeSegments.push({ text: codePart, index: lastRegexIndex });
+            }
+            lastRegexIndex = regexMatch.index + regexMatch[0].length;
         }
-        if (endIndex !== -1) mainBody = code.substring(startIndex, endIndex);
+        const lastCodePart = codeToSearch.substring(lastRegexIndex);
+        if(lastCodePart) {
+           codeSegments.push({ text: lastCodePart, index: lastRegexIndex });
+        }
+
+        for (const segment of codeSegments) {
+            for (let i = 0; i < segment.text.length; i++) {
+                const char = segment.text[i];
+                if (char === '{') {
+                    braceCount++;
+                } else if (char === '}') {
+                    braceCount--;
+                    if (braceCount === 0) {
+                        bodyEndIndex = segment.index + i;
+                        break;
+                    }
+                }
+            }
+            if (bodyEndIndex !== -1) {
+                break;
+            }
+        }
+        
+        if (bodyEndIndex !== -1) {
+            mainBody = codeToSearch.substring(0, bodyEndIndex);
+        }
     }
 
     let simulatedOutput: string[] = [];
