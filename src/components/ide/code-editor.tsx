@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useRef, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +10,7 @@ type CodeEditorProps = {
 export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
-  const highlighterRef = useRef<HTMLDivElement>(null);
+  const highlighterRef = useRef<HTMLPreElement>(null);
 
   const lineCount = code.split('\n').length || 1;
 
