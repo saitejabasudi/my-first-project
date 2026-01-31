@@ -33,7 +33,6 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(timer);
-          onTransitionEnd();
           return 100;
         }
         return prev + 1;
@@ -41,7 +40,14 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
     }, 20);
 
     return () => clearInterval(timer);
-  }, [onTransitionEnd]);
+  }, []);
+
+  useEffect(() => {
+    if (progress >= 100) {
+      const timeoutId = setTimeout(onTransitionEnd, 250);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [progress, onTransitionEnd]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground font-body">
