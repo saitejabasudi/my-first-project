@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Code, Trash2, Settings } from 'lucide-react';
+import { Plus, Trash2, Settings } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
 import { Logo } from '@/components/logo';
 import { Progress } from '@/components/ui/progress';
@@ -195,7 +195,7 @@ export default function ProjectSelectionPage() {
                     <CardContent className="pt-6 flex items-center justify-between">
                         <div className="flex items-start gap-4">
                             <div className="bg-secondary p-3 rounded-lg">
-                                <Code className="h-6 w-6 text-secondary-foreground" />
+                                <Logo className="h-6 w-6 text-secondary-foreground" />
                             </div>
                             <div>
                                 <h3 className="font-semibold">{file.name}</h3>

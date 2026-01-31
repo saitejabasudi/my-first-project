@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { JavaFile } from '@/lib/mock-files';
-import { Code, Folder, Plus, Trash2 } from 'lucide-react';
+import { Folder, Plus, Trash2 } from 'lucide-react';
+import { Logo } from '../logo';
 import Link from 'next/link';
 
 type FileExplorerProps = {
@@ -36,7 +37,7 @@ export function FileExplorer({ files, activeFileId, onFileSelect, onFileDelete }
                 className="w-full justify-start gap-2 text-left h-auto py-2"
                 onClick={() => onFileSelect(file.id)}
               >
-                <Code className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <Logo className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <span className="truncate font-code flex-grow">{file.name}</span>
               </Button>
               <Button 
