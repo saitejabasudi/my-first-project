@@ -279,12 +279,21 @@ export function IdeLayout() {
 
     setConsoleOutput(prev => [...prev, 'Compilation successful.', '> Running...']);
 
-    const prelude = `
+    const prelude = (mock_println: Function, mock_print: Function) => `
         class ArrayList extends Array { add(val) { this.push(val); return true; } get(index) { return this[index]; } size() { return this.length; } isEmpty() { return this.length === 0; } remove(index) { return this.splice(index, 1)[0]; } toString() { return \`[\${this.join(', ')}]\`; } }
         class HashMap extends Map { constructor() { super(); } put(key, value) { this.set(key, value); return value; } isEmpty() { return this.size === 0; } containsKey(key) { return this.has(key); } remove(key) { const v = this.get(key); this.delete(key); return v; } clear() { super.clear(); } values() { return Array.from(super.values()); } keySet() { return Array.from(this.keys()); } toString() { let parts = []; for (let [key, value] of this.entries()) { parts.push(key + '=' + value); } return '{' + parts.join(', ') + '}';} }
         let __scanner_inputs__ = []; let __scanner_cursor__ = 0; function __init_scanner__(inputs) { __scanner_inputs__ = inputs.flatMap(i => i.split(/\\s+|\\r?\\n/)).filter(Boolean); __scanner_cursor__ = 0; }
+        
+        const System = { 
+            out: {
+                println: (val) => mock_println(val),
+                print: (val) => mock_print(val),
+            },
+            in: 'System.in', 
+            currentTimeMillis: () => Date.now() 
+        };
+
         class Scanner { constructor(source) { if (source !== System.in) throw new Error("Scanner can only be used with System.in."); } nextLine() { return __scanner_inputs__[__scanner_cursor__++] || ""; } nextInt() { return parseInt(this.nextLine(), 10) || 0; } nextDouble() { return parseFloat(this.nextLine()) || 0.0; } next() { return this.nextLine(); } hasNext() { return __scanner_cursor__ < __scanner_inputs__.length; } close() {} }
-        const System = { in: 'System.in', currentTimeMillis: () => Date.now() };
 
         // New Library Shims
         const MathContext = {}; // Dummy object for BigDecimal syntax
@@ -368,8 +377,6 @@ export function IdeLayout() {
             const processedParts = parts.map((part, index) => {
                 if (index % 2 === 0) { // It's a code segment
                     return part
-                        .replace(/System\.out\.println\(([\s\S]*?)\);/g, 'mock_println($1);')
-                        .replace(/System\.out\.print\(([\s\S]*?)\);/g, 'mock_print($1);')
                         .replace(/(String|int|double|float|boolean|char)\s*\[\s*\]/g, 'let')
                         .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)(<.*?>)?\s+/g, (match, p1) => p1 ? 'const ' : 'let ')
                         .replace(/new\s+(ArrayList|HashMap)<.*?>\s*\(\)/g, 'new $1()')
@@ -388,10 +395,10 @@ export function IdeLayout() {
             const mock_print = (val = '') => { lineBuffer += (val?.toString() ?? ''); };
             
             const scannerInit = usesScanner ? `__init_scanner__(${JSON.stringify(userInputs)});` : '';
-            const fullCodeToRun = prelude + scannerInit + jsCode;
+            const fullCodeToRun = prelude(mock_println, mock_print) + scannerInit + jsCode;
 
-            const sandboxedExecutor = new Function('mock_println', 'mock_print', fullCodeToRun);
-            sandboxedExecutor(mock_println, mock_print);
+            const sandboxedExecutor = new Function(fullCodeToRun);
+            sandboxedExecutor();
 
             if (lineBuffer) outputBuffer.push(lineBuffer);
             simulatedOutput = outputBuffer;

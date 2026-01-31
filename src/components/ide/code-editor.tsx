@@ -35,10 +35,10 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
       const textarea = e.currentTarget;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
-      const newCode = `${code.substring(0, start)}\t${code.substring(end)}`;
+      const newCode = `${code.substring(0, start)}    ${code.substring(end)}`;
       onCodeChange(newCode);
       setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = start + 1;
+        textarea.selectionStart = textarea.selectionEnd = start + 4;
       }, 0);
       return;
     }
