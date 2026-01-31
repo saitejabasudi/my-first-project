@@ -279,7 +279,7 @@ export function IdeLayout() {
 
     setConsoleOutput(prev => [...prev, 'Compilation successful.', '> Running...']);
 
-    const prelude = (mock_println: Function, mock_print: Function) => `
+    const prelude = `
         class ArrayList extends Array { add(val) { this.push(val); return true; } get(index) { return this[index]; } size() { return this.length; } isEmpty() { return this.length === 0; } remove(index) { return this.splice(index, 1)[0]; } toString() { return \`[\${this.join(', ')}]\`; } }
         class HashMap extends Map { constructor() { super(); } put(key, value) { this.set(key, value); return value; } isEmpty() { return this.size === 0; } containsKey(key) { return this.has(key); } remove(key) { const v = this.get(key); this.delete(key); return v; } clear() { super.clear(); } values() { return Array.from(super.values()); } keySet() { return Array.from(this.keys()); } toString() { let parts = []; for (let [key, value] of this.entries()) { parts.push(key + '=' + value); } return '{' + parts.join(', ') + '}';} }
         let __scanner_inputs__ = []; let __scanner_cursor__ = 0; function __init_scanner__(inputs) { __scanner_inputs__ = inputs.flatMap(i => i.split(/\\s+|\\r?\\n/)).filter(Boolean); __scanner_cursor__ = 0; }
@@ -395,10 +395,10 @@ export function IdeLayout() {
             const mock_print = (val = '') => { lineBuffer += (val?.toString() ?? ''); };
             
             const scannerInit = usesScanner ? `__init_scanner__(${JSON.stringify(userInputs)});` : '';
-            const fullCodeToRun = prelude(mock_println, mock_print) + scannerInit + jsCode;
+            const fullCodeToRun = prelude + scannerInit + jsCode;
 
-            const sandboxedExecutor = new Function(fullCodeToRun);
-            sandboxedExecutor();
+            const sandboxedExecutor = new Function('mock_println', 'mock_print', fullCodeToRun);
+            sandboxedExecutor(mock_println, mock_print);
 
             if (lineBuffer) outputBuffer.push(lineBuffer);
             simulatedOutput = outputBuffer;
