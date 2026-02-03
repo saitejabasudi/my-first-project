@@ -34,6 +34,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
       const textarea = e.currentTarget;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
+      // Consistent 4-space indentation
       const newCode = `${code.substring(0, start)}    ${code.substring(end)}`;
       onCodeChange(newCode);
       setTimeout(() => {
@@ -63,7 +64,6 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 1 + indent.length;
-        textarea.scrollTop = textarea.scrollHeight;
       }, 0);
     }
   };
@@ -85,7 +85,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
 
   const renderHighlightedCode = () => {
     const codeToRender = code + '\n';
-    const stringAndCommentRegex = /(\/\*[\s\S]*?\*\/)|(\/\/[^\n]*)|("(?:\\[\s\S]|[^"\\])*")/g;
+    const stringAndCommentRegex = /(\/\*[\s\S]*?\*\/)|(\/\/[^\n]*)|("(?:\\[\s\S]|[^"\\])*")|('(?:\\[\s\S]|[^'\\])*')/g;
     
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
@@ -98,7 +98,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
       }
 
       const matchedPart = match[0];
-      if (matchedPart.startsWith('"')) {
+      if (matchedPart.startsWith('"') || matchedPart.startsWith("'")) {
           parts.push(<span key={`string-${match.index}`} className="text-syntax-string">{matchedPart}</span>);
       } else {
           parts.push(<span key={`comment-${match.index}`} className="text-syntax-comment">{matchedPart}</span>);
@@ -118,11 +118,11 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
   const editorStyles = "font-code text-base leading-relaxed p-4 border-0 rounded-none resize-none min-w-full";
 
   return (
-    <div className="flex h-full flex-col">
-        <div className="flex flex-1 overflow-auto bg-background relative">
+    <div className="flex h-full flex-col overflow-hidden">
+        <div className="flex flex-1 overflow-hidden bg-background relative">
             <div 
                 ref={lineNumbersRef}
-                className="w-12 text-right pr-2 select-none overflow-y-hidden bg-background z-10 text-muted-foreground font-code text-base leading-relaxed pt-4 flex-shrink-0"
+                className="w-12 text-right pr-2 select-none overflow-y-hidden bg-muted/30 z-10 text-muted-foreground/50 font-code text-base leading-relaxed pt-4 flex-shrink-0 border-r border-border/20"
                 aria-hidden="true"
             >
                 {Array.from({ length: lineCount }, (_, i) => (
@@ -135,7 +135,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
                   value={code}
                   onChange={(e) => onCodeChange(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className={`absolute inset-0 h-full w-full bg-transparent focus-visible:ring-0 z-20 text-transparent caret-foreground whitespace-pre overflow-auto ${editorStyles}`}
+                  className={`absolute inset-0 h-full w-full bg-transparent focus-visible:ring-0 z-20 text-transparent caret-foreground whitespace-pre overflow-auto scrollbar-hide ${editorStyles}`}
                   placeholder="Write your Java code here..."
                   aria-label="Code Editor"
                   spellCheck="false"
@@ -143,7 +143,7 @@ export function CodeEditor({ code, onCodeChange }: CodeEditorProps) {
                 <pre 
                     ref={highlighterRef}
                     aria-hidden="true"
-                    className={`absolute inset-0 h-full w-full bg-transparent overflow-auto z-10 pointer-events-none whitespace-pre ${editorStyles}`}
+                    className={`absolute inset-0 h-full w-full bg-transparent overflow-auto z-10 pointer-events-none whitespace-pre scrollbar-hide ${editorStyles}`}
                 >
                     {renderHighlightedCode()}
                 </pre>
