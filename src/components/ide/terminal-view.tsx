@@ -7,27 +7,26 @@ type TerminalViewProps = {
 };
 
 export function TerminalView({ output }: TerminalViewProps) {
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Scroll to the bottom whenever output changes
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [output]);
 
   return (
     <div className="flex h-full flex-col bg-card">
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1">
         <div className="font-code text-sm text-muted-foreground whitespace-pre-wrap p-4">
             {output.map((line, index) => {
                 const isError = line.toLowerCase().startsWith('error');
                 return (
                     <div key={index} className={isError ? 'text-destructive' : ''}>
-                        {line || '\u00A0'} {/* Render a non-breaking space for empty lines to preserve them */}
+                        {line || '\u00A0'}
                     </div>
                 );
             })}
+            <div ref={bottomRef} />
         </div>
       </ScrollArea>
     </div>

@@ -13,6 +13,7 @@ import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InputDialog } from './input-dialog';
+import { Logo } from '../logo';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const INITIALIZED_KEY = 'java-ide-initialized';
