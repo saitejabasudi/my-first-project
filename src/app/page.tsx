@@ -42,10 +42,12 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
     return () => clearInterval(timer);
   }, []);
 
-  // Safe side-effect to notify parent
+  // Safe side-effect to notify parent after render is complete
   useEffect(() => {
     if (progress >= 100) {
-      const timeoutId = setTimeout(onTransitionEnd, 500);
+      const timeoutId = setTimeout(() => {
+        onTransitionEnd();
+      }, 500);
       return () => clearTimeout(timeoutId);
     }
   }, [progress, onTransitionEnd]);
@@ -63,12 +65,14 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
 
 export default function ProjectSelectionPage() {
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const [isCreateProjectOpen, setCreateProjectOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [projects, setProjects] = useState<JavaFile[]>([]);
   const router = useRouter();
 
   useEffect(() => {
+    setIsMounted(true);
     if (typeof window === 'undefined') return;
 
     let storedProjects: JavaFile[] = [];
@@ -130,6 +134,8 @@ export default function ProjectSelectionPage() {
       return updatedProjects;
     });
   };
+
+  if (!isMounted) return null;
 
   if (loading) {
     return <SplashScreen onTransitionEnd={() => setLoading(false)} />;

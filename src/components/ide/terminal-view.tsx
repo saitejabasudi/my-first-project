@@ -11,13 +11,15 @@ export function TerminalView({ output }: TerminalViewProps) {
 
   useEffect(() => {
     // Scroll to the bottom whenever output changes
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
   }, [output]);
 
   return (
     <div className="flex h-full flex-col bg-card">
       <ScrollArea className="flex-1">
-        <div className="font-code text-sm text-muted-foreground whitespace-pre-wrap p-4">
+        <div className="font-code text-sm text-muted-foreground whitespace-pre-wrap p-4 min-h-full">
             {output.map((line, index) => {
                 const isError = line.toLowerCase().startsWith('error');
                 return (
@@ -26,7 +28,7 @@ export function TerminalView({ output }: TerminalViewProps) {
                     </div>
                 );
             })}
-            <div ref={bottomRef} />
+            <div ref={bottomRef} className="h-px w-full" aria-hidden="true" />
         </div>
       </ScrollArea>
     </div>

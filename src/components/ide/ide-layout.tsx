@@ -13,7 +13,7 @@ import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InputDialog } from './input-dialog';
-import { Logo } from '../logo';
+import { Logo } from '@/components/logo';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const INITIALIZED_KEY = 'java-ide-initialized';
@@ -69,7 +69,7 @@ function lintJavaCode(code: string, filename: string): string[] {
     }
 
     // Flexible main method regex
-    const mainMethodRegex = /public\s+static\s+void\s+main\s*\(\s*String\s*(\[\s*\]\s*\w+|\w+\s*\[\s*\]|\.\.\.\s*\w+)\s*\)/;
+    const mainMethodRegex = /public\\s+static\\s+void\\s+main\\s*\\(\\s*String\\s*(\\[\\s*\\]\\s*\\w+|\\w+\\s*\\[\\s*\\]|\\.\\.\\.\\s*\\w+)\\s*\\)/;
     if (!mainMethodRegex.test(code)) {
         errors.push(`Error: Missing valid 'public static void main(String[] args)' entry point.`);
     }
@@ -277,7 +277,7 @@ export function IdeLayout() {
     const usesScanner = activeFile.content.includes('new Scanner');
 
     if (usesScanner) {
-        const promptRegex = /System\.out\.print\s*\(\s*"(.*?)"\s*\);/g;
+        const promptRegex = /System\\.out\\.print\\s*\\(\\s*"(.*?)"\\s*\\);/g;
         const prompts = [...activeFile.content.matchAll(promptRegex)].map(match => match[1]);
         setInputPrompts(prompts.length > 0 ? prompts : ["Enter input:"]);
         
@@ -346,7 +346,7 @@ export function IdeLayout() {
 
     // Extract main method body safely
     let mainBody = '';
-    const mainMatch = activeFile.content.match(/public\s+static\s+void\s+main\s*\(\s*String\s*(\[\s*\]\s*\w+|\w+\s*\[\s*\]|\.\.\.\s*\w+)\s*\)\s*\{/);
+    const mainMatch = activeFile.content.match(/public\\s+static\\s+void\\s+main\\s*\\(\\s*String\\s*(\\[\\s*\\]\\s*\\w+|\\w+\\s*\\[\\s*\\]|\\.\\.\\.\\s*\\w+)\\s*\\)\\s*\\{/);
     
     if (mainMatch) {
         const startIdx = mainMatch.index! + mainMatch[0].length;
@@ -378,9 +378,9 @@ export function IdeLayout() {
 
     try {
         const transformedCode = mainBody
-            .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)(<.*?>)?\s+(\w+)\s*=/g, 'let $4 =')
-            .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)(<.*?>)?\s+(\w+)\s*;/g, 'let $4;')
-            .replace(/Integer\.parseInt/g, 'parseInt');
+            .replace(/(final\\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)(<.*?>)?\\s+(\\w+)\\s*=/g, 'let $4 =')
+            .replace(/(final\\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)(<.*?>)?\\s+(\\w+)\\s*;/g, 'let $4;')
+            .replace(/Integer\\.parseInt/g, 'parseInt');
 
         let outputLines: string[] = [];
         let currentLine = '';
@@ -397,10 +397,10 @@ export function IdeLayout() {
         execute(mock_println, mock_print);
 
         if (currentLine) outputLines.push(currentLine);
-        setConsoleOutput(prev => [...prev, ...outputLines, '\nExecution finished.']);
+        setConsoleOutput(prev => [...prev, ...outputLines, '\\nExecution finished.']);
         setActiveTab('console');
     } catch (e: any) {
-        setErrorOutput([`Runtime Error: ${e.message}`]);
+        setErrorOutput([`Runtime Error: \${e.message}`]);
         setActiveTab('problems');
     }
 
