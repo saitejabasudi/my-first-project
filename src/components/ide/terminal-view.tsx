@@ -7,12 +7,12 @@ type TerminalViewProps = {
 };
 
 export function TerminalView({ output }: TerminalViewProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Scroll to the bottom whenever output changes
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    // Automatically scroll to the bottom whenever output changes
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
   }, [output]);
 
@@ -21,14 +21,14 @@ export function TerminalView({ output }: TerminalViewProps) {
       <ScrollArea className="flex-1">
         <div className="font-code text-sm text-muted-foreground whitespace-pre-wrap p-4 min-h-full">
             {output.map((line, index) => {
-                const isError = line.toLowerCase().startsWith('error');
+                const isError = line.toLowerCase().startsWith('error') || line.toLowerCase().includes('runtime error');
                 return (
                     <div key={index} className={isError ? 'text-destructive' : ''}>
                         {line || '\u00A0'}
                     </div>
                 );
             })}
-            <div ref={bottomRef} className="h-px w-full" aria-hidden="true" />
+            <div ref={scrollRef} className="h-px w-full" aria-hidden="true" />
         </div>
       </ScrollArea>
     </div>

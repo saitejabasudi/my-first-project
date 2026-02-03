@@ -13,7 +13,7 @@ import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InputDialog } from './input-dialog';
-import { Logo } from '@/components/logo';
+import { Logo } from '../logo';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const INITIALIZED_KEY = 'java-ide-initialized';
@@ -68,8 +68,8 @@ function lintJavaCode(code: string, filename: string): string[] {
         errors.push(`Error: Missing 'public class ${className}'. The public class name must match the file name.`);
     }
 
-    // Flexible main method regex
-    const mainMethodRegex = /public\\s+static\\s+void\\s+main\\s*\\(\\s*String\\s*(\\[\\s*\\]\\s*\\w+|\\w+\\s*\\[\\s*\\]|\\.\\.\\.\\s*\\w+)\\s*\\)/;
+    // Flexible main method regex supporting various valid Java signatures
+    const mainMethodRegex = /public\s+static\s+void\s+main\s*\(\s*String\s*(\[\s*\]\s*\w+|\w+\s*\[\s*\]|\.\.\.\s*\w+)\s*\)/;
     if (!mainMethodRegex.test(code)) {
         errors.push(`Error: Missing valid 'public static void main(String[] args)' entry point.`);
     }
@@ -277,7 +277,7 @@ export function IdeLayout() {
     const usesScanner = activeFile.content.includes('new Scanner');
 
     if (usesScanner) {
-        const promptRegex = /System\\.out\\.print\\s*\\(\\s*"(.*?)"\\s*\\);/g;
+        const promptRegex = /System\.out\.print\s*\(\s*"(.*?)"\s*\);/g;
         const prompts = [...activeFile.content.matchAll(promptRegex)].map(match => match[1]);
         setInputPrompts(prompts.length > 0 ? prompts : ["Enter input:"]);
         
@@ -319,7 +319,7 @@ export function IdeLayout() {
             } 
         }
         let __cursor__ = 0;
-        const __inputs__ = ${JSON.stringify(userInputs)}.flatMap(i => i.split(/\\s+/)).filter(Boolean);
+        const __inputs__ = ${JSON.stringify(userInputs)}.flatMap(i => i.split(/\s+/)).filter(Boolean);
         
         const System = { 
             out: {
@@ -344,9 +344,9 @@ export function IdeLayout() {
         class BigDecimal { constructor(v){this.v=Number(v)} add(o){return new BigDecimal(this.v+o.v)} toString(){return this.v.toString()} }
     `;
 
-    // Extract main method body safely
+    // Extract main method body safely using bracket counting
     let mainBody = '';
-    const mainMatch = activeFile.content.match(/public\\s+static\\s+void\\s+main\\s*\\(\\s*String\\s*(\\[\\s*\\]\\s*\\w+|\\w+\\s*\\[\\s*\\]|\\.\\.\\.\\s*\\w+)\\s*\\)\\s*\\{/);
+    const mainMatch = activeFile.content.match(/public\s+static\s+void\s+main\s*\(\s*String\s*(\[\s*\]\s*\w+|\w+\s*\[\s*\]|\.\.\.\s*\w+)\s*\)\s*\{/);
     
     if (mainMatch) {
         const startIdx = mainMatch.index! + mainMatch[0].length;
@@ -354,7 +354,6 @@ export function IdeLayout() {
         let depth = 1;
         let endIdx = -1;
         
-        // Use segments to skip braces in strings/comments
         const segments = getCodeSegments(fullRemaining);
         for (const seg of segments) {
             if (!seg.isCode) continue;
@@ -378,9 +377,9 @@ export function IdeLayout() {
 
     try {
         const transformedCode = mainBody
-            .replace(/(final\\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)(<.*?>)?\\s+(\\w+)\\s*=/g, 'let $4 =')
-            .replace(/(final\\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)(<.*?>)?\\s+(\\w+)\\s*;/g, 'let $4;')
-            .replace(/Integer\\.parseInt/g, 'parseInt');
+            .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)(<.*?>)?\s+(\w+)\s*=/g, 'let $4 =')
+            .replace(/(final\s+)?(String|int|double|float|boolean|char|ArrayList|HashMap|Scanner|Random|Date|BigDecimal|BigInteger|SimpleDateFormat)(<.*?>)?\s+(\w+)\s*;/g, 'let $4;')
+            .replace(/Integer\.parseInt/g, 'parseInt');
 
         let outputLines: string[] = [];
         let currentLine = '';
@@ -393,14 +392,15 @@ export function IdeLayout() {
             currentLine += (v?.toString() ?? ''); 
         };
 
+        // Create a sandboxed function that receives the print mocks
         const execute = new Function('mock_println', 'mock_print', prelude + transformedCode);
         execute(mock_println, mock_print);
 
         if (currentLine) outputLines.push(currentLine);
-        setConsoleOutput(prev => [...prev, ...outputLines, '\\nExecution finished.']);
+        setConsoleOutput(prev => [...prev, ...outputLines, '\nExecution finished.']);
         setActiveTab('console');
     } catch (e: any) {
-        setErrorOutput([`Runtime Error: \${e.message}`]);
+        setErrorOutput([`Runtime Error: ${e.message}`]);
         setActiveTab('problems');
     }
 
