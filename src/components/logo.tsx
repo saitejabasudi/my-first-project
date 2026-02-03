@@ -7,7 +7,7 @@ export function Logo({ className }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="3.5"
+      strokeWidth="3"
       strokeLinecap="round"
       strokeLinejoin="round"
       className={cn('h-6 w-6', className)}

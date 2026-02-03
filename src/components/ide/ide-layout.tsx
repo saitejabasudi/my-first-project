@@ -13,7 +13,7 @@ import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InputDialog } from './input-dialog';
-import { Logo } from '../logo';
+import { Logo } from '@/components/logo';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const INITIALIZED_KEY = 'java-ide-initialized';
@@ -68,8 +68,8 @@ function lintJavaCode(code: string, filename: string): string[] {
         errors.push(`Error: Missing 'public class ${className}'. The public class name must match the file name.`);
     }
 
-    // Flexible main method regex supporting various valid Java signatures
-    const mainMethodRegex = /public\s+static\s+void\s+main\s*\(\s*String\s*(\[\s*\]\s*\w+|\w+\s*\[\s*\]|\.\.\.\s*\w+)\s*\)/;
+    // Improved robust main method regex
+    const mainMethodRegex = /\bvoid\s+main\s*\(\s*String\s*(\[\]\s*\w+|\w+\s*\[\]|\.\.\.\s*\w+)\s*\)/;
     if (!mainMethodRegex.test(code)) {
         errors.push(`Error: Missing valid 'public static void main(String[] args)' entry point.`);
     }
@@ -346,7 +346,7 @@ export function IdeLayout() {
 
     // Extract main method body safely using bracket counting
     let mainBody = '';
-    const mainMatch = activeFile.content.match(/public\s+static\s+void\s+main\s*\(\s*String\s*(\[\s*\]\s*\w+|\w+\s*\[\s*\]|\.\.\.\s*\w+)\s*\)\s*\{/);
+    const mainMatch = activeFile.content.match(/\bvoid\s+main\s*\(\s*String\s*(\[\]\s*\w+|\w+\s*\[\]|\.\.\.\s*\w+)\s*\)\s*\{/);
     
     if (mainMatch) {
         const startIdx = mainMatch.index! + mainMatch[0].length;
