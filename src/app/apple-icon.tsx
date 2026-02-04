@@ -27,7 +27,7 @@ export default function Icon() {
           viewBox="0 0 24 24"
           fill="none"
           stroke="#FF8C00"
-          strokeWidth="3"
+          strokeWidth="4"
           strokeLinecap="round"
           strokeLinejoin="round"
         >

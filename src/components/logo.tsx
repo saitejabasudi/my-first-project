@@ -7,7 +7,7 @@ export function Logo({ className }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="3"
+      strokeWidth="4"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
