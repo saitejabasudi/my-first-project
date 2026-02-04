@@ -13,7 +13,7 @@ import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InputDialog } from './input-dialog';
-import { Logo } from '../logo';
+import { Logo } from '@/components/logo';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const INITIALIZED_KEY = 'java-ide-initialized';
@@ -65,7 +65,6 @@ function lintJavaCode(code: string, filename: string): string[] {
         errors.push(`Error: Missing 'public class ${className}'. The public class name must match the file name.`);
     }
 
-    // Improved main method detection to avoid false positives
     const mainMethodRegex = /\bpublic\s+static\s+void\s+main\s*\(\s*String\s*(\[\]\s*\w+|\w+\s*\[\]|\.\.\.\s*\w+)\s*\)/;
     if (!mainMethodRegex.test(code)) {
         errors.push(`Error: Missing valid 'public static void main(String[] args)' entry point.`);

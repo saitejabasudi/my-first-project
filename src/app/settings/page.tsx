@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Info, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, Info, ShieldCheck, Heart } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,7 @@ export default function SettingsPage() {
   const privacyPolicy = "Java Studio Pro is an offline Java coding application. It does not collect, store, or share any personal user data. All code and files remain on the user’s device. No internet access, tracking, or third-party services are used.";
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-body">
+    <div className="min-h-screen bg-background text-foreground font-body pb-12">
       <header className="flex items-center p-4 border-b">
         <div className="flex items-center gap-2">
             <Link href="/" passHref>
@@ -39,7 +39,7 @@ export default function SettingsPage() {
             <h1 className="text-xl font-semibold">Settings</h1>
         </div>
       </header>
-      <main className="p-4">
+      <main className="p-4 max-w-2xl mx-auto">
         <div className="divide-y divide-border">
             <SettingsItem title="Font" value="Source Code Pro" />
             <SettingsItem title="Font size" value="Default" />
@@ -95,8 +95,15 @@ export default function SettingsPage() {
               value="You can delete any project file directly from the project selection screen. Deleting the application will remove all local data." 
             />
         </div>
-        <div className="mt-8 text-center">
-            <p className="font-bold text-muted-foreground opacity-50">Professional Edition</p>
+        
+        <div className="mt-12 flex flex-col items-center justify-center gap-2 pt-8 border-t opacity-60">
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+                <span>Made with</span>
+                <Heart className="h-4 w-4 text-destructive fill-destructive" />
+                <span>by</span>
+                <span className="text-foreground">Saiteja Basudi</span>
+            </div>
+            <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Professional Edition</p>
         </div>
       </main>
     </div>

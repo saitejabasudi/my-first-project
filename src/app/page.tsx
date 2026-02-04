@@ -44,7 +44,6 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
 
   useEffect(() => {
     if (progress >= 100) {
-      // Safe state transition outside of the render cycle
       const timeoutId = setTimeout(() => {
         onTransitionEnd();
       }, 500);
