@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -25,6 +24,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const INITIALIZED_KEY = 'java-ide-initialized';
+const SPLASH_SHOWN_SESSION_KEY = 'java-studio-splash-shown';
 
 function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
   const [progress, setProgress] = useState(0);
@@ -76,6 +76,12 @@ export default function ProjectSelectionPage() {
   useEffect(() => {
     setIsMounted(true);
     if (typeof window === 'undefined') return;
+
+    // Check if splash has already been shown in this session
+    const hasShownSplash = sessionStorage.getItem(SPLASH_SHOWN_SESSION_KEY);
+    if (hasShownSplash) {
+      setLoading(false);
+    }
 
     let storedProjects: JavaFile[] = [];
     try {
@@ -138,6 +144,7 @@ export default function ProjectSelectionPage() {
   };
 
   const handleSplashFinished = useCallback(() => {
+    sessionStorage.setItem(SPLASH_SHOWN_SESSION_KEY, 'true');
     setLoading(false);
   }, []);
 
