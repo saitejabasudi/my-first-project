@@ -44,6 +44,7 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
 
   useEffect(() => {
     if (progress >= 100) {
+      // Guarded transition to avoid "Cannot update a component while rendering another"
       const timeoutId = setTimeout(() => {
         onTransitionEnd();
       }, 500);

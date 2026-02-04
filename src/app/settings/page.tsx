@@ -28,8 +28,8 @@ export default function SettingsPage() {
   const privacyPolicy = "Java Studio Pro is an offline Java coding application. It does not collect, store, or share any personal user data. All code and files remain on the user’s device. No internet access, tracking, or third-party services are used.";
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-body pb-12">
-      <header className="flex items-center p-4 border-b">
+    <div className="min-h-screen bg-background text-foreground font-body flex flex-col">
+      <header className="flex items-center p-4 border-b bg-card">
         <div className="flex items-center gap-2">
             <Link href="/" passHref>
               <Button variant="ghost" size="icon" aria-label="Go back to projects">
@@ -39,7 +39,7 @@ export default function SettingsPage() {
             <h1 className="text-xl font-semibold">Settings</h1>
         </div>
       </header>
-      <main className="p-4 max-w-2xl mx-auto">
+      <main className="p-4 max-w-2xl mx-auto flex-1 w-full">
         <div className="divide-y divide-border">
             <SettingsItem title="Font" value="Source Code Pro" />
             <SettingsItem title="Font size" value="Default" />
@@ -95,17 +95,17 @@ export default function SettingsPage() {
               value="You can delete any project file directly from the project selection screen. Deleting the application will remove all local data." 
             />
         </div>
-        
-        <div className="mt-12 flex flex-col items-center justify-center gap-2 py-8 border-t border-border/20">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <span>Made with</span>
-                <Heart className="h-4 w-4 text-rose-500 fill-rose-500 animate-pulse" />
-                <span>by</span>
-                <span className="font-bold border-b border-primary text-primary">Saiteja Basudi</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black">Professional Edition</p>
-        </div>
       </main>
+      
+      <footer className="mt-auto bg-primary py-8 flex flex-col items-center justify-center gap-2 shadow-[0_-1px_3px_rgba(0,0,0,0.1)]">
+          <div className="flex items-center gap-2 text-sm font-medium text-white">
+              <span className="text-white">Made with</span>
+              <Heart className="h-4 w-4 text-white fill-white animate-pulse" />
+              <span className="text-white">by</span>
+              <span className="font-bold border-b border-white text-white">Saiteja Basudi</span>
+          </div>
+          <p className="text-[10px] text-white/70 uppercase tracking-[0.3em] font-black">Professional Edition</p>
+      </footer>
     </div>
   );
 }
