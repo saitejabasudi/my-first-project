@@ -96,14 +96,14 @@ export default function SettingsPage() {
             />
         </div>
         
-        <div className="mt-12 flex flex-col items-center justify-center gap-2 p-8 rounded-2xl bg-primary shadow-lg border border-primary/20">
-            <div className="flex items-center gap-1.5 text-sm font-medium text-white">
-                <span>Made with</span>
-                <Heart className="h-4 w-4 text-white fill-white" />
-                <span>by</span>
-                <span className="font-bold border-b border-white/30">Saiteja Basudi</span>
+        <div className="mt-12 flex flex-col items-center justify-center gap-3 p-8 rounded-2xl bg-zinc-950 shadow-2xl border border-white/5">
+            <div className="flex items-center gap-2 text-sm font-medium text-white">
+                <span className="text-[#FFFFFF]">Made with</span>
+                <Heart className="h-4 w-4 text-rose-500 fill-rose-500 animate-pulse" />
+                <span className="text-[#FFFFFF]">by</span>
+                <span className="font-bold border-b border-white/30 text-[#FFFFFF]">Saiteja Basudi</span>
             </div>
-            <p className="text-xs text-white/70 uppercase tracking-[0.2em] font-bold">Professional Edition</p>
+            <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-black">Professional Edition</p>
         </div>
       </main>
     </div>
