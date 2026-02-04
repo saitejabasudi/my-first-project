@@ -17,9 +17,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Settings } from 'lucide-react';
 import { mockFiles, type JavaFile } from '@/lib/mock-files';
-import { Logo } from '@/components/logo';
 import { Progress } from '@/components/ui/progress';
 import { FullLogo } from '@/components/full-logo';
+import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
@@ -44,7 +44,6 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
 
   useEffect(() => {
     if (progress >= 100) {
-      // Guarded transition to avoid "Cannot update a component while rendering another"
       const timeoutId = setTimeout(() => {
         onTransitionEnd();
       }, 500);
