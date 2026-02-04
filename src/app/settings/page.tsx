@@ -19,7 +19,7 @@ const SettingsItem = ({ title, value }: { title: string, value: string | React.R
 );
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex items-center gap-2 pt-6 pb-2">
+  <div className="flex items-center gap-2 pt-6 pb-2 border-b mb-2">
     {children}
   </div>
 );
@@ -39,14 +39,14 @@ export default function SettingsPage() {
             <h1 className="text-xl font-semibold">Settings</h1>
         </div>
       </header>
-      <main className="p-4 max-w-2xl mx-auto flex-1 w-full">
+      <main className="p-4 max-w-2xl mx-auto flex-1 w-full pb-20">
         <div className="divide-y divide-border">
             <SettingsItem title="Font" value="Source Code Pro" />
             <SettingsItem title="Font size" value="Default" />
             <SettingsItem title="File Encoding" value="UTF-8" />
             <Dialog>
               <DialogTrigger asChild>
-                <div className="py-4 cursor-pointer">
+                <div className="py-4 cursor-pointer hover:bg-muted/50 px-2 rounded-md transition-colors">
                   <p className="text-base text-foreground">Privacy Policy</p>
                   <p className="text-sm text-muted-foreground">View our privacy policy</p>
                 </div>
@@ -61,8 +61,8 @@ export default function SettingsPage() {
               </DialogContent>
             </Dialog>
             <Link href="/concepts/statement-completion">
-              <div className="py-4 cursor-pointer flex justify-between items-center border-t border-border mt-0 first:border-t-0">
-                  <div className="flex-1 py-4">
+              <div className="py-4 cursor-pointer flex justify-between items-center px-2 hover:bg-muted/50 rounded-md transition-colors">
+                  <div className="flex-1">
                     <p className="text-base text-foreground">Coding Concepts</p>
                     <p className="text-sm text-muted-foreground">Learn about statement completion</p>
                   </div>
@@ -77,7 +77,7 @@ export default function SettingsPage() {
           <h2 className="text-lg font-semibold">Data Safety</h2>
         </SectionTitle>
 
-        <div className="divide-y divide-border border-t">
+        <div className="divide-y divide-border">
             <SettingsItem 
               title="No Data Collected" 
               value="This application does not collect any personal or sensitive user data. All operations are performed locally on your device." 

@@ -44,7 +44,6 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
 
   useEffect(() => {
     if (progress >= 100) {
-      // Use requestAnimationFrame or a slight timeout to ensure state update happens after render cycle
       const timeoutId = setTimeout(() => {
         onTransitionEnd();
       }, 300);

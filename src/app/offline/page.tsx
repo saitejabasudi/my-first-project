@@ -17,7 +17,7 @@ export default function OfflinePage() {
             strokeLinejoin="round"
             className="mx-auto text-muted-foreground"
           >
-            <line x1="2" x2="22" y1="2" y2="22" />
+            <line x1="2" y1="2" x2="22" y2="22" />
             <path d="M8.5 16.5a5 5 0 0 1 7 0" />
             <path d="M2 8.82a15 15 0 0 1 4.17-2.65" />
             <path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76" />
