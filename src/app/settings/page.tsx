@@ -61,8 +61,8 @@ export default function SettingsPage() {
               </DialogContent>
             </Dialog>
             <Link href="/concepts/statement-completion">
-              <div className="py-4 cursor-pointer flex justify-between items-center">
-                  <div>
+              <div className="py-4 cursor-pointer flex justify-between items-center border-t border-border mt-0 first:border-t-0">
+                  <div className="flex-1 py-4">
                     <p className="text-base text-foreground">Coding Concepts</p>
                     <p className="text-sm text-muted-foreground">Learn about statement completion</p>
                   </div>

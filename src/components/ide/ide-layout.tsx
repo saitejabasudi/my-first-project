@@ -65,6 +65,7 @@ function lintJavaCode(code: string, filename: string): string[] {
         errors.push(`Error: Missing 'public class ${className}'. The public class name must match the file name.`);
     }
 
+    // Support for various main method signatures
     const mainMethodRegex = /\bpublic\s+static\s+void\s+main\s*\(\s*String\s*(\[\]\s*\w+|\w+\s*\[\]|\.\.\.\s*\w+)\s*\)/;
     if (!mainMethodRegex.test(code)) {
         errors.push(`Error: Missing valid 'public static void main(String[] args)' entry point.`);

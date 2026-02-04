@@ -28,6 +28,7 @@ export function TerminalView({ output }: TerminalViewProps) {
                     </div>
                 );
             })}
+            {/* Dedicated scroll anchor */}
             <div ref={scrollRef} className="h-px w-full" aria-hidden="true" />
         </div>
       </ScrollArea>

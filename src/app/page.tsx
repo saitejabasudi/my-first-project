@@ -44,9 +44,10 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
 
   useEffect(() => {
     if (progress >= 100) {
+      // Use requestAnimationFrame or a slight timeout to ensure state update happens after render cycle
       const timeoutId = setTimeout(() => {
         onTransitionEnd();
-      }, 500);
+      }, 300);
       return () => clearTimeout(timeoutId);
     }
   }, [progress, onTransitionEnd]);
@@ -56,7 +57,9 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
       <FullLogo />
       <div className="mt-8 flex flex-col items-center gap-2">
         <p className="text-muted-foreground text-sm animate-pulse">Initializing Studio...</p>
-        <Progress value={progress} className="w-64 h-1.5" />
+        <div className="w-64">
+          <Progress value={progress} className="h-1.5" />
+        </div>
       </div>
     </div>
   );
