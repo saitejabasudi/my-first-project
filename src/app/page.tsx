@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,7 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
 
   useEffect(() => {
     if (progress >= 100) {
+      // Safe state transition outside of the render cycle
       const timeoutId = setTimeout(() => {
         onTransitionEnd();
       }, 500);
@@ -134,10 +135,14 @@ export default function ProjectSelectionPage() {
     });
   };
 
+  const handleSplashFinished = useCallback(() => {
+    setLoading(false);
+  }, []);
+
   if (!isMounted) return null;
 
   if (loading) {
-    return <SplashScreen onTransitionEnd={() => setLoading(false)} />;
+    return <SplashScreen onTransitionEnd={handleSplashFinished} />;
   }
 
   return (

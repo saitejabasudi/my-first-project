@@ -24,7 +24,6 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-
 export default function SettingsPage() {
   const privacyPolicy = "Java Studio Pro is an offline Java coding application. It does not collect, store, or share any personal user data. All code and files remain on the user’s device. No internet access, tracking, or third-party services are used.";
 
@@ -84,7 +83,7 @@ export default function SettingsPage() {
               value="This application does not collect any personal or sensitive user data. All operations are performed locally on your device." 
             />
             <SettingsItem 
-              title="No Data Shared with Third Parties" 
+              title="No Data Shared" 
               value="Since no data is collected, no data is shared with any third-party companies or services." 
             />
             <SettingsItem 
@@ -93,11 +92,11 @@ export default function SettingsPage() {
             />
             <SettingsItem 
               title="Data Deletion" 
-              value="You can delete any project file directly from the project selection screen. Deleting the application from your device will remove all of its data." 
+              value="You can delete any project file directly from the project selection screen. Deleting the application will remove all local data." 
             />
         </div>
         <div className="mt-8 text-center">
-            <p className="font-bold text-muted-foreground">Professional Edition</p>
+            <p className="font-bold text-muted-foreground opacity-50">Professional Edition</p>
         </div>
       </main>
     </div>
