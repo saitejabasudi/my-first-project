@@ -11,8 +11,8 @@ export function Logo({ className }: { className?: string }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M8 5l-6 7 6 7" />
-      <path d="M16 5l6 7-6 7" />
+      <path d="M9 5l-7 7 7 7" />
+      <path d="M15 5l7 7-7 7" />
     </svg>
   );
 }

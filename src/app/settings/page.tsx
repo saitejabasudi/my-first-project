@@ -97,14 +97,13 @@ export default function SettingsPage() {
         </div>
       </main>
       
-      <footer className="mt-auto bg-primary py-8 flex flex-col items-center justify-center gap-2">
+      <footer className="mt-auto bg-primary py-8 flex flex-col items-center justify-center">
           <div className="flex items-center gap-2 text-sm font-medium">
               <span className="text-[#FFFFFF]">Made with</span>
               <Heart className="h-4 w-4 text-[#FFFFFF] fill-[#FFFFFF] animate-pulse" />
               <span className="text-[#FFFFFF]">by</span>
               <span className="font-bold border-b border-[#FFFFFF] text-[#FFFFFF]">Saiteja Basudi</span>
           </div>
-          <p className="text-[10px] text-[#FFFFFF]/70 uppercase tracking-[0.3em] font-black">Professional Edition</p>
       </footer>
     </div>
   );
