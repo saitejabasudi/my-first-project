@@ -92,7 +92,7 @@ export default function SettingsPage() {
             />
             <SettingsItem 
               title="Data Deletion" 
-              value="You can delete any project file directly from the project selection screen. Deleting the application will remove all local data." 
+              value="You can delete any project file directly from the project selection screen." 
             />
         </div>
       </main>
