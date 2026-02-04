@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -46,7 +47,7 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
     if (progress >= 100) {
       const timeoutId = setTimeout(() => {
         onTransitionEnd();
-      }, 300);
+      }, 500); // Slight delay for smooth transition
       return () => clearTimeout(timeoutId);
     }
   }, [progress, onTransitionEnd]);

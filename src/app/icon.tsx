@@ -1,14 +1,27 @@
+
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 
-export const size = {
-  width: 512,
-  height: 512,
-};
-export const contentType = 'image/png';
+// Generate metadata for multiple sizes to satisfy PWA requirements
+export function generateImageMetadata() {
+  return [
+    {
+      id: '192',
+      size: { width: 192, height: 192 },
+    },
+    {
+      id: '512',
+      size: { width: 512, height: 512 },
+    },
+  ];
+}
 
-export default function Icon() {
+export default function Icon({ id }: { id: string }) {
+  const isSmall = id === '192';
+  const size = isSmall ? 192 : 512;
+  const svgSize = isSmall ? 120 : 320;
+
   return new ImageResponse(
     (
       <div
@@ -23,8 +36,8 @@ export default function Icon() {
         }}
       >
         <svg
-          width="320"
-          height="320"
+          width={svgSize}
+          height={svgSize}
           viewBox="0 0 24 24"
           fill="none"
           stroke="#FFFFFF"
@@ -38,7 +51,8 @@ export default function Icon() {
       </div>
     ),
     {
-      ...size,
+      width: size,
+      height: size,
     }
   );
 }
