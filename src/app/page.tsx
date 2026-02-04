@@ -44,7 +44,6 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
 
   useEffect(() => {
     if (progress >= 100) {
-      // Use a safe microtask delay to prevent "update during render" warning
       const timeoutId = setTimeout(() => {
         onTransitionEnd();
       }, 500);

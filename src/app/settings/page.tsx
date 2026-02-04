@@ -96,14 +96,14 @@ export default function SettingsPage() {
             />
         </div>
         
-        <div className="mt-12 flex flex-col items-center justify-center gap-3 p-8 rounded-2xl bg-zinc-950 shadow-2xl border border-white/5">
-            <div className="flex items-center gap-2 text-sm font-medium text-white">
-                <span className="text-[#FFFFFF]">Made with</span>
+        <div className="mt-12 flex flex-col items-center justify-center gap-2 py-8 border-t border-border/20">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <span>Made with</span>
                 <Heart className="h-4 w-4 text-rose-500 fill-rose-500 animate-pulse" />
-                <span className="text-[#FFFFFF]">by</span>
-                <span className="font-bold border-b border-white/30 text-[#FFFFFF]">Saiteja Basudi</span>
+                <span>by</span>
+                <span className="font-bold border-b border-primary text-primary">Saiteja Basudi</span>
             </div>
-            <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-black">Professional Edition</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black">Professional Edition</p>
         </div>
       </main>
     </div>
