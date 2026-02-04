@@ -13,14 +13,11 @@ import { TerminalView } from './terminal-view';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InputDialog } from './input-dialog';
-import { Logo } from '../logo';
+import { Logo } from '@/components/logo';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const INITIALIZED_KEY = 'java-ide-initialized';
 
-/**
- * Robustly identify code segments vs string literals and comments.
- */
 function getCodeSegments(code: string): { text: string, offset: number, isCode: boolean }[] {
     const segments: { text: string, offset: number, isCode: boolean }[] = [];
     const stringAndCommentRegex = /(\/\*[\s\S]*?\*\/)|(\/\/[^\n]*)|("(?:\\[\s\S]|[^"\\])*")|('(?:\\[\s\S]|[^'\\])*')/g;
@@ -68,7 +65,6 @@ function lintJavaCode(code: string, filename: string): string[] {
         errors.push(`Error: Missing 'public class ${className}'. The public class name must match the file name.`);
     }
 
-    // Robust main method detection
     const mainMethodRegex = /\bvoid\s+main\s*\(\s*String\s*(\[\]\s*\w+|\w+\s*\[\]|\.\.\.\s*\w+)\s*\)/;
     if (!mainMethodRegex.test(code)) {
         errors.push(`Error: Missing valid 'public static void main(String[] args)' entry point.`);
@@ -295,7 +291,6 @@ export function IdeLayout() {
 
     setConsoleOutput(prev => [...prev, 'Build successful.', '> Executing...']);
 
-    // Library Mocks
     const prelude = `
         class ArrayList extends Array { 
             add(val) { this.push(val); return true; } 
@@ -344,7 +339,6 @@ export function IdeLayout() {
         class BigDecimal { constructor(v){this.v=Number(v)} add(o){return new BigDecimal(this.v+o.v)} toString(){return this.v.toString()} }
     `;
 
-    // Extract main method body safely using bracket counting
     let mainBody = '';
     const mainMatch = activeFile.content.match(/\bvoid\s+main\s*\(\s*String\s*(\[\]\s*\w+|\w+\s*\[\]|\.\.\.\s*\w+)\s*\)\s*\{/);
     

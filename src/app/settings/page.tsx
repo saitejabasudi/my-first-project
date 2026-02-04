@@ -26,7 +26,7 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 
 
 export default function SettingsPage() {
-  const privacyPolicy = "JavaDroid IDE is an offline Java coding application. It does not collect, store, or share any personal user data. All code and files remain on the user’s device. No internet access, tracking, or third-party services are used.";
+  const privacyPolicy = "Java Studio Pro is an offline Java coding application. It does not collect, store, or share any personal user data. All code and files remain on the user’s device. No internet access, tracking, or third-party services are used.";
 
   return (
     <div className="min-h-screen bg-background text-foreground font-body">
@@ -70,7 +70,6 @@ export default function SettingsPage() {
                   <Info className="h-5 w-5 text-muted-foreground" />
               </div>
             </Link>
-            <SettingsItem title="Donate" value="Buy a cup of coffee for the developer.☕" />
             <SettingsItem title="Current Version" value="1.0.0" />
         </div>
 
@@ -98,7 +97,7 @@ export default function SettingsPage() {
             />
         </div>
         <div className="mt-8 text-center">
-            <p className="font-bold text-muted-foreground">Made by Saiteja Basudi</p>
+            <p className="font-bold text-muted-foreground">Professional Edition</p>
         </div>
       </main>
     </div>
