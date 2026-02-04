@@ -1,9 +1,7 @@
-
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 
-// Generate metadata for multiple sizes to satisfy PWA requirements
 export function generateImageMetadata() {
   return [
     {

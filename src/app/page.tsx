@@ -24,7 +24,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 
 const PROJECTS_STORAGE_KEY = 'java-ide-projects';
 const INITIALIZED_KEY = 'java-ide-initialized';
-const SPLASH_SHOWN_SESSION_KEY = 'java-studio-splash-shown';
+const SPLASH_SHOWN_SESSION_KEY = 'java-studio-splash-shown-v1';
 
 function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
   const [progress, setProgress] = useState(0);
@@ -47,7 +47,7 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
     if (progress >= 100) {
       const timeoutId = setTimeout(() => {
         onTransitionEnd();
-      }, 500); // Slight delay for smooth transition
+      }, 500);
       return () => clearTimeout(timeoutId);
     }
   }, [progress, onTransitionEnd]);
@@ -77,7 +77,7 @@ export default function ProjectSelectionPage() {
     setIsMounted(true);
     if (typeof window === 'undefined') return;
 
-    // Check if splash has already been shown in this session
+    // Skip animation if already shown in this session
     const hasShownSplash = sessionStorage.getItem(SPLASH_SHOWN_SESSION_KEY);
     if (hasShownSplash) {
       setLoading(false);
