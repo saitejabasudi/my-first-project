@@ -42,8 +42,6 @@ function SplashScreen({ onTransitionEnd }: { onTransitionEnd: () => void }) {
     return () => clearInterval(timer);
   }, []);
 
-  // Use a clean side-effect to notify the parent when animation is done
-  // This avoids the "Cannot update a component while rendering another" error
   useEffect(() => {
     if (progress >= 100) {
       const timeoutId = setTimeout(() => {
