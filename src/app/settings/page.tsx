@@ -29,7 +29,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-body flex flex-col">
-      <header className="flex items-center p-4 border-b bg-card">
+      <header className="flex items-center p-4 border-b bg-background">
         <div className="flex items-center gap-2">
             <Link href="/" passHref>
               <Button variant="ghost" size="icon" aria-label="Go back to projects">
@@ -97,14 +97,14 @@ export default function SettingsPage() {
         </div>
       </main>
       
-      <footer className="mt-auto bg-primary py-8 flex flex-col items-center justify-center gap-2 shadow-[0_-1px_3px_rgba(0,0,0,0.1)]">
-          <div className="flex items-center gap-2 text-sm font-medium text-white">
-              <span className="text-white">Made with</span>
-              <Heart className="h-4 w-4 text-white fill-white animate-pulse" />
-              <span className="text-white">by</span>
-              <span className="font-bold border-b border-white text-white">Saiteja Basudi</span>
+      <footer className="mt-auto bg-primary py-8 flex flex-col items-center justify-center gap-2">
+          <div className="flex items-center gap-2 text-sm font-medium">
+              <span className="text-[#FFFFFF]">Made with</span>
+              <Heart className="h-4 w-4 text-[#FFFFFF] fill-[#FFFFFF] animate-pulse" />
+              <span className="text-[#FFFFFF]">by</span>
+              <span className="font-bold border-b border-[#FFFFFF] text-[#FFFFFF]">Saiteja Basudi</span>
           </div>
-          <p className="text-[10px] text-white/70 uppercase tracking-[0.3em] font-black">Professional Edition</p>
+          <p className="text-[10px] text-[#FFFFFF]/70 uppercase tracking-[0.3em] font-black">Professional Edition</p>
       </footer>
     </div>
   );
